@@ -1431,7 +1431,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
       soloPos = 0;
     }
     soloCounter.textContent = 'Frage ' + (soloPos + 1) + ' von ' + soloQueue.length;
-    soloQuestionText.textContent = soloQueue[soloPos];
+    typewriterEffect(soloQuestionText, soloQueue[soloPos]);
   }
 
   soloNextBtn.addEventListener('click', () => {
@@ -1818,12 +1818,12 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     });
 
     if(matchedQuestion){
-      questionText.textContent = matchedQuestion.text;
+      typewriterEffect(questionText, matchedQuestion.text);
       customQuestionTag.textContent = '💌 Frage von ' + (matchedQuestion.name || 'jemandem');
       customQuestionTag.classList.remove('hidden');
       sessionRef.child('customQuestions').child(matchedKey).update({ used: true });
     } else {
-      questionText.textContent = questionsList[currentIndex];
+      typewriterEffect(questionText, questionsList[currentIndex]);
       customQuestionTag.classList.add('hidden');
     }
 
@@ -2077,12 +2077,13 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
   function typewriterEffect(el, text, speed){
     speed = speed || 26;
+    if(el._typewriterInterval) clearInterval(el._typewriterInterval);
     el.textContent = '';
     let i = 0;
-    const interval = setInterval(() => {
+    el._typewriterInterval = setInterval(() => {
       el.textContent += text.charAt(i);
       i++;
-      if(i >= text.length) clearInterval(interval);
+      if(i >= text.length) clearInterval(el._typewriterInterval);
     }, speed);
   }
 
@@ -2465,7 +2466,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     wheelDisc.style.transform = 'rotate(' + wheelRotation + 'deg)';
 
     setTimeout(() => {
-      wheelResultText.textContent = wheelChosenIdea.text;
+      typewriterEffect(wheelResultText, wheelChosenIdea.text);
       wheelResultBox.classList.remove('hidden');
     }, 4100);
   });
@@ -2518,7 +2519,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     }
     const item = roleplayQueue[roleplayPos];
     roleplayTag.textContent = item.cat;
-    roleplayText.textContent = item.text;
+    typewriterEffect(roleplayText, item.text);
   }
 
   tileRoleplay.addEventListener('click', () => {
@@ -2643,7 +2644,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
       return;
     }
     nhieCounter.textContent = 'Aussage ' + (nhieIndex + 1) + ' von ' + nhieStatements.length;
-    nhieStatementText.textContent = nhieStatements[nhieIndex];
+    typewriterEffect(nhieStatementText, nhieStatements[nhieIndex]);
     renderNhieTiles();
   }
 
@@ -2787,7 +2788,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
       guessWaitingNote.classList.add('hidden');
       return;
     }
-    guessQuestionText.textContent = guessQuestions[guessIndex];
+    typewriterEffect(guessQuestionText, guessQuestions[guessIndex]);
 
     const role = myGuessRole();
     if(role === 'answer'){
