@@ -183,6 +183,41 @@
     background: var(--plum-soft);
   }
 
+  /* Spielauswahl-Hub */
+  .game-tile-list{ display:flex; flex-direction:column; gap:10px; }
+  .game-tile{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    text-align:left;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--line);
+    background: var(--bg);
+    cursor: pointer;
+    position: relative;
+  }
+  .game-tile:hover{ border-color: var(--plum); }
+  .game-tile.disabled{ opacity: 0.55; cursor: default; }
+  .game-tile.disabled:hover{ border-color: var(--line); }
+  .game-tile-emoji{ font-size: 1.6rem; flex-shrink:0; }
+  .game-tile-text{ display:flex; flex-direction:column; gap:2px; }
+  .game-tile-title{ font-weight:700; font-size:0.95rem; }
+  .game-tile-desc{ font-size:0.78rem; color: var(--ink-muted); }
+  .soon-badge{
+    position:absolute;
+    top:10px; right:12px;
+    background: var(--gold);
+    color:#fff;
+    font-size:0.65rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    padding:3px 8px;
+    border-radius:999px;
+  }
+
   /* Game screen */
   .status-line{
     font-size: 0.85rem;
@@ -382,105 +417,6 @@
     animation: eggFadeOut 0.6s ease forwards;
   }
 
-  /* Sternenhimmel-Minispiel */
-  .star-teaser-btn{
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 80;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #1b1035;
-    border: 1.5px solid rgba(255,255,255,0.3);
-    color: #ffe9a8;
-    font-size: 1.2rem;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor: pointer;
-    animation: twinkle 2.4s ease-in-out infinite;
-  }
-  .star-sky-screen{
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at top, #1b1035 0%, #0b0620 60%, #05030f 100%);
-    overflow: hidden;
-    z-index: 500;
-  }
-  .star-sky-topbar{
-    position: absolute;
-    top: 20px; left: 20px; right: 20px;
-    display:flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 5;
-  }
-  .star-sky-title{
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    color: #fff;
-    font-size: 1.05rem;
-  }
-  .star-sky-back{
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.28);
-    color: #fff;
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    display:flex; align-items:center; justify-content:center;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  .sky-star{
-    position: absolute;
-    background: none;
-    border: none;
-    font-size: 1.7rem;
-    cursor: pointer;
-    color: #ffe9a8;
-    filter: drop-shadow(0 0 6px rgba(255,233,168,0.75));
-    animation: twinkle 2.6s ease-in-out infinite;
-    padding: 8px;
-  }
-  .sky-star.opened{
-    color: #9b8dff;
-    filter: drop-shadow(0 0 8px rgba(155,141,255,0.85));
-    animation: none;
-    opacity: 0.6;
-  }
-  @keyframes twinkle{
-    0%, 100%{ opacity: 0.55; transform: scale(0.92); }
-    50%{ opacity: 1; transform: scale(1.15); }
-  }
-  .star-message-overlay{
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    z-index: 1300;
-    max-width: 300px;
-    background: rgba(255,255,255,0.98);
-    color: var(--ink);
-    padding: 28px 26px;
-    border-radius: 20px;
-    text-align: center;
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 1.15rem;
-    line-height: 1.5;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
-    animation: eggPop 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
-    cursor: pointer;
-  }
-  .star-message-overlay.fade{ animation: eggFadeOut 0.4s ease forwards; }
-  .star-message-overlay .close-hint{
-    display: block;
-    margin-top: 16px;
-    font-family: 'Inter', sans-serif;
-    font-style: normal;
-    font-size: 0.72rem;
-    color: var(--ink-muted);
-  }
   .floating-emoji{
     position: fixed;
     bottom: 30px;
@@ -521,14 +457,29 @@
 </head>
 <body>
 
-  <button class="star-teaser-btn hidden" id="starTeaserBtn" title="✨">✨</button>
-
   <!-- ===================== SCREEN 1: NAME ===================== -->
   <div id="name-screen" class="screen">
     <div class="top-row">
       <div>
-        <h1 class="title">Zwei <em>Antworten</em></h1>
-        <p class="subtitle">Eine Frage. Zwei Perspektiven. Trag deinen Namen ein und leg los.</p>
+        <h1 class="title">Spiele-<em>Hub</em></h1>
+        <p class="subtitle">Trag deinen Namen ein und wähl danach ein Spiel.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="playerNameInput">Dein Name</label>
+      <input type="text" id="playerNameInput" placeholder="z. B. Anna" autocomplete="off">
+      <button class="btn-primary" id="startBtn">Weiter →</button>
+      <p class="waiting-note" id="nameError" style="color:#B24040; display:none;">Bitte gib zuerst deinen Namen ein.</p>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN: SPIELAUSWAHL-HUB ===================== -->
+  <div id="hub-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Was wollen wir <em>spielen?</em></h1>
+        <p class="subtitle" id="hubGreeting">Hey!</p>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <button class="gear-btn hidden" id="openEasterEggHelpBtn" title="Easter Eggs anzeigen">❓</button>
@@ -536,12 +487,74 @@
       </div>
     </div>
 
+    <div class="status-line" id="hubPresenceLine">
+      <span class="dot offline" id="hubPresenceDot"></span>
+      <span id="hubPresenceText">Noch niemand sonst online</span>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <label style="margin-bottom:12px;">📱 Auf einem Handy</label>
+      <div class="game-tile-list">
+        <button class="game-tile" id="tileWop">
+          <span class="game-tile-emoji">🎲</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Wahrheit oder Pflicht</span>
+            <span class="game-tile-desc">Abwechselnd auf einem Gerät</span>
+          </span>
+        </button>
+        <button class="game-tile" id="tileSolo">
+          <span class="game-tile-emoji">📖</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Solo-Vorlesemodus</span>
+            <span class="game-tile-desc">Fragen der Reihe nach vorlesen</span>
+          </span>
+        </button>
+        <button class="game-tile disabled" id="tileWheel">
+          <span class="game-tile-emoji">🎡</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Date-Ideen-Drehrad</span>
+            <span class="game-tile-desc">Bald verfügbar</span>
+          </span>
+          <span class="soon-badge">bald</span>
+        </button>
+        <button class="game-tile disabled" id="tileRoleplay">
+          <span class="game-tile-emoji">🎭</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Rollenspiel-Icebreaker</span>
+            <span class="game-tile-desc">Bald verfügbar</span>
+          </span>
+          <span class="soon-badge">bald</span>
+        </button>
+      </div>
+    </div>
+
     <div class="card">
-      <label for="playerNameInput">Dein Name</label>
-      <input type="text" id="playerNameInput" placeholder="z. B. Anna" autocomplete="off">
-      <button class="btn-primary" id="startBtn">Spiel starten</button>
-      <p class="waiting-note" id="nameError" style="color:#B24040; display:none;">Bitte gib zuerst deinen Namen ein.</p>
-      <button class="btn-ghost hidden" id="soloModeBtn" style="width:100%; margin-top:12px;">🎲 Solo-Modus: Fragen einfach vorlesen</button>
+      <label style="margin-bottom:12px;">📱📱 Auf 2 Handys (online)</label>
+      <div class="game-tile-list">
+        <button class="game-tile" id="tileKennenlernspiel">
+          <span class="game-tile-emoji">💌</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Kennenlernspiel</span>
+            <span class="game-tile-desc">Fragen beantworten & vergleichen</span>
+          </span>
+        </button>
+        <button class="game-tile disabled" id="tileNeverHaveIEver">
+          <span class="game-tile-emoji">🙅</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Nie habe ich je …</span>
+            <span class="game-tile-desc">Bald verfügbar</span>
+          </span>
+          <span class="soon-badge">bald</span>
+        </button>
+        <button class="game-tile disabled" id="tileGuessAnswer">
+          <span class="game-tile-emoji">🔮</span>
+          <span class="game-tile-text">
+            <span class="game-tile-title">Rate meine Antwort</span>
+            <span class="game-tile-desc">Bald verfügbar</span>
+          </span>
+          <span class="soon-badge">bald</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -561,14 +574,6 @@
     </div>
   </div>
 
-  <!-- ===================== STERNENHIMMEL-MINISPIEL ===================== -->
-  <div id="star-sky-screen" class="star-sky-screen hidden">
-    <div class="star-sky-topbar">
-      <span class="star-sky-title">Tipp einen Stern an ✨</span>
-      <button class="star-sky-back" id="starSkyBackBtn" title="Zurück">←</button>
-    </div>
-    <div id="starField"></div>
-  </div>
 
   <!-- ===================== EASTER-EGG-HILFE (nur admin) ===================== -->
   <div id="easter-egg-modal" class="modal-backdrop hidden">
@@ -578,15 +583,13 @@
       <div style="max-height: 360px; overflow-y: auto;">
         <ul style="padding-left: 18px; margin: 0; line-height: 1.8; font-size: 0.92rem;">
           <li><strong>admin</strong> — schaltet die Einstellungen frei (Fragen bearbeiten, Reset, Export)</li>
-          <li><strong>Single / single</strong> — öffnet den Solo-Vorlese-Modus</li>
-          <li><strong>Liz</strong> — Stern-Button oben rechts zum Sternenhimmel-Minispiel + süßer Spruch</li>
-          <li><strong>Hey Daddy</strong> — „Na dann, Daddy 😏🔥"</li>
+          <li><strong>Liz</strong> — „Na du süße Maus 😘💕"</li>
+          <li><strong>Daddy</strong> — „Na dann, Daddy 😏🔥"</li>
           <li><strong>Baby</strong> — „Immer für dich da, mein Schatz 🥰"</li>
           <li><strong>Schatz</strong> — „Nur das Beste für dich, Schatz 💛"</li>
           <li><strong>Ich liebe dich</strong> — „Ich liebe dich noch mehr ❤️‍🔥"</li>
           <li><strong>Bae</strong> — „Für immer dein Bae 😘"</li>
           <li><strong>Pizza</strong> — „Mmmh 🍕 … aber DU bist trotzdem meine Nummer 1"</li>
-          <li><strong>WOP / WoP / wop</strong> — öffnet das Wahrheit-oder-Pflicht-Minispiel</li>
         </ul>
       </div>
       <div class="modal-actions">
@@ -1034,17 +1037,23 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   const quickMsgSendBtn = document.getElementById('quickMsgSendBtn');
   const reactionBar = document.getElementById('reactionBar');
 
-  const soloModeBtn = document.getElementById('soloModeBtn');
   const soloScreen = document.getElementById('solo-screen');
   const soloBackBtn = document.getElementById('soloBackBtn');
   const soloCounter = document.getElementById('soloCounter');
   const soloQuestionText = document.getElementById('soloQuestionText');
   const soloNextBtn = document.getElementById('soloNextBtn');
 
-  const starTeaserBtn = document.getElementById('starTeaserBtn');
-  const starSkyScreen = document.getElementById('star-sky-screen');
-  const starSkyBackBtn = document.getElementById('starSkyBackBtn');
-  const starField = document.getElementById('starField');
+  const hubScreen = document.getElementById('hub-screen');
+  const hubGreeting = document.getElementById('hubGreeting');
+  const hubPresenceDot = document.getElementById('hubPresenceDot');
+  const hubPresenceText = document.getElementById('hubPresenceText');
+  const tileWop = document.getElementById('tileWop');
+  const tileSolo = document.getElementById('tileSolo');
+  const tileWheel = document.getElementById('tileWheel');
+  const tileRoleplay = document.getElementById('tileRoleplay');
+  const tileKennenlernspiel = document.getElementById('tileKennenlernspiel');
+  const tileNeverHaveIEver = document.getElementById('tileNeverHaveIEver');
+  const tileGuessAnswer = document.getElementById('tileGuessAnswer');
 
   const openEasterEggHelpBtn = document.getElementById('openEasterEggHelpBtn');
   const easterEggModal = document.getElementById('easter-egg-modal');
@@ -1084,12 +1093,8 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     const val = playerNameInput.value.trim();
     const lower = val.toLowerCase();
     const isAdmin = lower === 'admin';
-    const isSingle = lower === 'single';
-    const isLiz = lower === 'liz';
     openSettingsBtn.classList.toggle('hidden', !isAdmin);
     openEasterEggHelpBtn.classList.toggle('hidden', !isAdmin);
-    soloModeBtn.classList.toggle('hidden', !isSingle);
-    starTeaserBtn.classList.toggle('hidden', !isLiz);
   }
   playerNameInput.addEventListener('input', updateSettingsAccess);
   updateSettingsAccess();
@@ -1097,7 +1102,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   // ---------- Easter Eggs im Namensfeld ----------
   const EASTER_EGGS = [
     {
-      match: 'hey daddy',
+      match: 'daddy',
       text: 'Na dann, Daddy 😏🔥',
       emojis: ['🔥', '😏', '💋', '😈'],
       gradient: 'linear-gradient(135deg, #ff4d6d, #c9184a, #590d22)'
@@ -1161,12 +1166,6 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   playerNameInput.addEventListener('input', () => {
     const val = playerNameInput.value.trim().toLowerCase();
 
-    if(val === 'wop'){
-      nameScreen.classList.add('hidden');
-      wopSetupScreen.classList.remove('hidden');
-      return;
-    }
-
     const egg = EASTER_EGGS.find(eg => eg.match === val);
     if(egg){
       if(activeEggMatch !== val){
@@ -1199,7 +1198,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
     settingsModal.classList.add('hidden');
     gameScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
+    hubScreen.classList.remove('hidden');
   });
 
   function shuffleArray(arr){
@@ -1211,21 +1210,21 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     return a;
   }
 
-  // ---------- Solo-Modus (nur bei Name "Single"/"single") ----------
-  soloModeBtn.addEventListener('click', () => {
+  // ---------- Solo-Modus (über Hub-Kachel gestartet) ----------
+  function openSoloMode(){
     sessionRef.child('questions').once('value').then(snap => {
       const qs = snap.val() || [];
       if(qs.length === 0){
-        alert('Es sind noch keine Fragen hinterlegt. Bitte lass zuerst jemanden mit Zugriff auf die Einstellungen welche eintragen.');
+        alert('Es sind noch keine Fragen hinterlegt. Bitte lass zuerst jemanden mit Admin-Zugriff welche eintragen.');
         return;
       }
       soloQueue = shuffleArray(qs);
       soloPos = 0;
-      nameScreen.classList.add('hidden');
+      hubScreen.classList.add('hidden');
       soloScreen.classList.remove('hidden');
       renderSoloQuestion();
     });
-  });
+  }
 
   function renderSoloQuestion(){
     if(soloPos >= soloQueue.length){
@@ -1243,87 +1242,13 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
   soloBackBtn.addEventListener('click', () => {
     soloScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
+    hubScreen.classList.remove('hidden');
   });
 
   gameBackBtn.addEventListener('click', () => {
     gameScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
+    hubScreen.classList.remove('hidden');
   });
-
-  // ---------- Sternenhimmel-Minispiel ----------
-  const STAR_MESSAGES = [
-    'Du bist das Beste, was mir passiert ist.',
-    'Ich liebe dein Lachen mehr als alles andere.',
-    'Bei dir fühle ich mich zuhause.',
-    'Du machst jeden Tag ein bisschen heller.',
-    'Ich bin so stolz, dass du meine bist.',
-    'Danke, dass du einfach du bist.',
-    'Mit dir will ich alt werden.',
-    'Du bist meine liebste Ablenkung.',
-    'Jeder Moment mit dir ist ein Geschenk.',
-    'Ich könnte stundenlang nur an dich denken.',
-    'Du bist mein Lieblingsmensch.',
-    'Für dich würde ich alles tun.',
-    'Bei dir muss ich nie jemand anderes sein.',
-    'Ich freu mich auf jedes Abenteuer mit dir.',
-    'Du bist mein Zuhause, egal wo wir sind.'
-  ];
-
-  starTeaserBtn.addEventListener('click', () => {
-    renderStarSky();
-    nameScreen.classList.add('hidden');
-    starTeaserBtn.classList.add('hidden');
-    starSkyScreen.classList.remove('hidden');
-  });
-
-  starSkyBackBtn.addEventListener('click', () => {
-    starSkyScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
-    updateSettingsAccess();
-  });
-
-  function renderStarSky(){
-    starField.innerHTML = '';
-    const shuffledMessages = shuffleArray(STAR_MESSAGES);
-
-    shuffledMessages.forEach((msg, i) => {
-      const star = document.createElement('button');
-      star.type = 'button';
-      star.className = 'sky-star';
-      star.textContent = '✦';
-      star.style.left = (6 + Math.random() * 84) + '%';
-      star.style.top = (14 + Math.random() * 72) + '%';
-      star.style.animationDelay = (Math.random() * 2) + 's';
-
-      star.addEventListener('click', () => {
-        star.classList.add('opened');
-        showStarMessage(msg);
-      });
-
-      starField.appendChild(star);
-    });
-  }
-
-  function showStarMessage(text){
-    const overlay = document.createElement('div');
-    overlay.className = 'star-message-overlay';
-    overlay.innerHTML = '';
-    const p = document.createElement('div');
-    p.textContent = text;
-    const hint = document.createElement('span');
-    hint.className = 'close-hint';
-    hint.textContent = 'Zum Schließen antippen';
-    overlay.appendChild(p);
-    overlay.appendChild(hint);
-
-    overlay.addEventListener('click', () => {
-      overlay.classList.add('fade');
-      setTimeout(() => overlay.remove(), 400);
-    });
-
-    document.body.appendChild(overlay);
-  }
 
   saveQuestionsBtn.addEventListener('click', () => {
     const lines = questionsInput.value
@@ -1494,7 +1419,48 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     });
   });
 
-  // ---------- Spiel starten ----------
+  // ---------- Presence-System (wer ist gerade online?) ----------
+  const presenceRef = db.ref('presence/' + myId);
+  let presenceState = {};
+
+  function setupPresence(){
+    const connectedRef = db.ref('.info/connected');
+    connectedRef.on('value', snap => {
+      if(snap.val() === true){
+        presenceRef.onDisconnect().update({ online: false, ts: Date.now() });
+        presenceRef.update({ name: myName, online: true, ts: Date.now() });
+      }
+    });
+
+    db.ref('presence').on('value', snap => {
+      presenceState = snap.val() || {};
+      renderHubPresence();
+    });
+  }
+
+  function renderHubPresence(){
+    const others = Object.entries(presenceState).filter(([id, p]) => id !== myId && p && p.online);
+    if(others.length === 0){
+      hubPresenceText.textContent = 'Noch niemand sonst online';
+      hubPresenceDot.classList.add('offline');
+    } else {
+      const names = others.map(([id, p]) => p.name || 'Jemand').join(', ');
+      hubPresenceText.textContent = names + ' ist gerade auch online 🟢';
+      hubPresenceDot.classList.remove('offline');
+    }
+  }
+
+  function showComingSoonToast(){
+    const box = document.createElement('div');
+    box.className = 'floating-power-msg';
+    box.style.left = '50%';
+    box.style.transform = 'translateX(-50%)';
+    box.textContent = '🚧 Kommt bald!';
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 2600);
+  }
+
+  // ---------- Namenseintrag -> Spielauswahl-Hub ----------
   startBtn.addEventListener('click', () => {
     const name = playerNameInput.value.trim();
     if(!name){
@@ -1505,13 +1471,37 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     myName = name;
     localStorage.setItem('zweiAntworten_playerName', myName);
 
-    sessionRef.child('players').child(myId).set({ name: myName, lastSeen: Date.now() });
-
+    openSettingsBtn.classList.toggle('hidden', myName.toLowerCase() !== 'admin');
+    openEasterEggHelpBtn.classList.toggle('hidden', myName.toLowerCase() !== 'admin');
     openSettingsBtnGame.classList.toggle('hidden', myName.toLowerCase() !== 'admin');
 
+    hubGreeting.textContent = 'Hey ' + myName + '! Wähl ein Spiel:';
+
+    setupPresence();
+
     nameScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  // ---------- Kennenlernspiel über Hub-Kachel öffnen ----------
+  function openKennenlernspiel(){
+    sessionRef.child('players').child(myId).set({ name: myName, lastSeen: Date.now() });
+    hubScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     attachListeners();
+  }
+
+  tileKennenlernspiel.addEventListener('click', openKennenlernspiel);
+
+  tileWop.addEventListener('click', () => {
+    hubScreen.classList.add('hidden');
+    wopSetupScreen.classList.remove('hidden');
+  });
+
+  tileSolo.addEventListener('click', openSoloMode);
+
+  [tileWheel, tileRoleplay, tileNeverHaveIEver, tileGuessAnswer].forEach(tile => {
+    tile.addEventListener('click', showComingSoonToast);
   });
 
   // ---------- Live-Listener ----------
@@ -1837,12 +1827,12 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
   wopSetupBackBtn.addEventListener('click', () => {
     wopSetupScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
+    hubScreen.classList.remove('hidden');
   });
 
   wopGameBackBtn.addEventListener('click', () => {
     wopGameScreen.classList.add('hidden');
-    nameScreen.classList.remove('hidden');
+    hubScreen.classList.remove('hidden');
   });
 
   wopStartBtn.addEventListener('click', () => {
