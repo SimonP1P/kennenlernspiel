@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zwei Antworten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ====================================================================
+     FIREBASE — kostenloser Google-Dienst, damit ihr auf zwei Geräten
+     gleichzeitig spielen könnt. Anleitung zum Einrichten steht im Chat.
+     ==================================================================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<style>
+  :root{
+    --bg: #FAF6F2;
+    --surface: #FFFFFF;
+    --ink: #2E2430;
+    --ink-muted: #8B7D87;
+    --plum: #6B4E71;
+    --plum-soft: #EFE6EE;
+    --teal: #4F8A82;
+    --teal-soft: #E4F0EE;
+    --gold: #C9A063;
+    --line: #E9E0E3;
+    --shadow: 0 12px 30px rgba(46, 36, 48, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(107,78,113,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(79,138,130,0.07), transparent 40%);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+  }
+
+  .screen{ width:100%; max-width: 560px; }
+  .hidden{ display:none !important; }
+
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 3rem);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  h1.title em{ font-style: italic; font-weight: 500; color: var(--plum); }
+
+  .subtitle{
+    color: var(--ink-muted);
+    margin: 0 0 32px;
+    font-size: 0.98rem;
+  }
+
+  .card{
+    background: var(--surface);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 32px;
+    border: 1px solid var(--line);
+  }
+
+  label{
+    display:block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  input[type=text], textarea{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size: 1rem;
+    padding: 13px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  input[type=text]:focus, textarea:focus{ border-color: var(--plum); }
+
+  textarea{ resize: vertical; min-height: 220px; line-height:1.5; }
+
+  button{
+    font-family:'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 22px;
+    cursor: pointer;
+    transition: transform .12s ease, opacity .12s ease;
+  }
+  button:active{ transform: scale(0.98); }
+  button:disabled{ opacity: .5; cursor: not-allowed; }
+
+  .btn-primary{ background: var(--plum); color: #fff; width:100%; margin-top: 18px; }
+  .btn-primary:hover:not(:disabled){ opacity:.92; }
+
+  .btn-ghost{
+    background: transparent;
+    color: var(--ink-muted);
+    border: 1.5px solid var(--line);
+  }
+  .btn-ghost:hover{ border-color: var(--plum); color: var(--plum); }
+
+  .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom: 24px;
+  }
+
+  .gear-btn{
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 1.1rem;
+    padding:0;
+    flex-shrink:0;
+  }
+  .gear-btn:hover{ border-color: var(--plum); }
+
+  /* Settings modal */
+  .modal-backdrop{
+    position: fixed; inset:0;
+    background: rgba(46,36,48,0.35);
+    display:flex; align-items:center; justify-content:center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .modal{
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 640px;
+    width:100%;
+    max-height: 85vh;
+    overflow-y:auto;
+    box-shadow: var(--shadow);
+  }
+  .modal h2{ font-family:'Fraunces', serif; font-weight:600; margin: 0 0 6px; }
+  .modal p.hint{ color: var(--ink-muted); font-size:0.88rem; margin: 0 0 18px; line-height:1.5;}
+  .modal-actions{ display:flex; gap:10px; margin-top: 18px; }
+  .modal-actions button{ flex:1; }
+
+  .toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .toggle-btn{
+    flex: 1;
+    min-width: 120px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--ink-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .toggle-btn.active{
+    border-color: var(--plum);
+    color: var(--plum);
+    background: var(--plum-soft);
+  }
+
+  /* Game screen */
+  .status-line{
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background: var(--teal); flex-shrink:0; }
+  .dot.offline{ background: #C9A063; }
+
+  .question-eyebrow{
+    font-size: 0.78rem;
+    font-weight:700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .question-text{
+    font-family:'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.4rem, 4vw, 1.85rem);
+    line-height: 1.35;
+    margin: 0 0 26px;
+  }
+
+  .answer-form textarea{ min-height: 90px; }
+
+  .waiting-note{
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    text-align:center;
+  }
+
+  .tiles{ margin-top: 8px; display:flex; flex-direction:column; gap:14px; }
+
+  .tile{
+    border-radius: 14px;
+    padding: 18px 20px;
+    position:relative;
+  }
+  .tile.other{ background: var(--teal-soft); border: 1px solid rgba(79,138,130,0.25); }
+  .tile.mine{ background: var(--plum-soft); border: 1px solid rgba(107,78,113,0.25); }
+  .tile-name{
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .tile.other .tile-name{ color: var(--teal); }
+  .tile.mine .tile-name{ color: var(--plum); }
+  .tile-answer{ font-size: 1.02rem; line-height:1.45; }
+
+  .connector{
+    text-align:center;
+    color: var(--line);
+    font-size: 1rem;
+    margin: -6px 0;
+  }
+
+  .next-btn-wrap{ margin-top: 22px; }
+
+  .finished-box{ text-align:center; padding: 20px 0; }
+  .finished-box .big{ font-family:'Fraunces', serif; font-size: 1.6rem; font-style:italic; }
+
+  .name-input-row{ display:flex; gap:10px; }
+  .name-input-row input{ flex:1; }
+
+  /* Quick-Nachrichtenleiste */
+  .quick-msg-bar{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .quick-msg-bar input{
+    flex:1;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    outline: none;
+  }
+  .quick-msg-bar input:focus{ border-color: var(--plum); }
+  .quick-msg-bar button{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    flex-shrink: 0;
+    background: var(--plum);
+    color: #fff;
+    font-size: 1rem;
+    margin-top: 0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .quick-msg-bar button:hover{ opacity: .9; }
+
+  /* Quick Reactions */
+  .reaction-bar{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .reaction-btn{
+    background: var(--bg);
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .reaction-btn:hover{ border-color: var(--plum); transform: translateY(-2px); }
+
+  @keyframes floatUp{
+    0%{ transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+    12%{ opacity: 1; transform: translateY(-30px) scale(1) rotate(0deg); }
+    100%{ transform: translateY(-560px) scale(1.2) rotate(var(--rot)); opacity: 0; }
+  }
+
+  @keyframes flyPower{
+    0%{ transform: translate(0,0) scale(0.4) rotate(0deg); opacity: 0; }
+    8%{ opacity: 1; transform: translate(8px,-50px) scale(1.35) rotate(-10deg); }
+    22%{ transform: translate(-16px,-160px) scale(1.55) rotate(12deg); }
+    38%{ transform: translate(18px,-280px) scale(1.4) rotate(-14deg); }
+    55%{ transform: translate(-12px,-400px) scale(1.55) rotate(9deg); }
+    75%{ transform: translate(14px,-520px) scale(1.45) rotate(-7deg); }
+    100%{ transform: translate(0,-680px) scale(1.65) rotate(4deg); opacity: 0; }
+  }
+  .floating-power-emoji{
+    position: fixed;
+    bottom: 30px;
+    font-size: 2.9rem;
+    animation: flyPower 2.5s cubic-bezier(.22,.85,.28,1) forwards;
+    pointer-events: none;
+    z-index: 1000;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+  }
+  .floating-power-msg{
+    position: fixed;
+    bottom: 30px;
+    max-width: 260px;
+    background: #25D366;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.3;
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 10px 24px rgba(37,211,102,0.4);
+    animation: flyPower 2.8s cubic-bezier(.22,.85,.28,1) forwards;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  @keyframes eggPop{
+    0%{ transform: translate(-50%,-50%) scale(0.3) rotate(-10deg); opacity: 0; }
+    45%{ transform: translate(-50%,-50%) scale(1.18) rotate(4deg); opacity: 1; }
+    65%{ transform: translate(-50%,-50%) scale(0.94) rotate(-3deg); }
+    82%{ transform: translate(-50%,-50%) scale(1.05) rotate(2deg); }
+    100%{ transform: translate(-50%,-50%) scale(1) rotate(0deg); opacity: 1; }
+  }
+  @keyframes eggFadeOut{
+    0%{ opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    100%{ opacity: 0; transform: translate(-50%,-50%) scale(0.85); }
+  }
+  .hey-daddy-overlay{
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 1200;
+    text-align: center;
+    padding: 26px 32px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #ff6fa5, #ff8f6c, #ffd76f);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(1.3rem, 6vw, 2rem);
+    box-shadow: 0 20px 55px rgba(255,111,165,0.55);
+    animation: eggPop 0.6s cubic-bezier(.34,1.56,.64,1) forwards;
+    pointer-events: none;
+    max-width: 320px;
+  }
+  .hey-daddy-overlay.fade{
+    animation: eggFadeOut 0.6s ease forwards;
+  }
+
+  /* Sternenhimmel-Minispiel */
+  .star-teaser-btn{
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 80;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #1b1035;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #ffe9a8;
+    font-size: 1.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor: pointer;
+    animation: twinkle 2.4s ease-in-out infinite;
+  }
+  .star-sky-screen{
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at top, #1b1035 0%, #0b0620 60%, #05030f 100%);
+    overflow: hidden;
+    z-index: 500;
+  }
+  .star-sky-topbar{
+    position: absolute;
+    top: 20px; left: 20px; right: 20px;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .star-sky-title{
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: #fff;
+    font-size: 1.05rem;
+  }
+  .star-sky-back{
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #fff;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .sky-star{
+    position: absolute;
+    background: none;
+    border: none;
+    font-size: 1.7rem;
+    cursor: pointer;
+    color: #ffe9a8;
+    filter: drop-shadow(0 0 6px rgba(255,233,168,0.75));
+    animation: twinkle 2.6s ease-in-out infinite;
+    padding: 8px;
+  }
+  .sky-star.opened{
+    color: #9b8dff;
+    filter: drop-shadow(0 0 8px rgba(155,141,255,0.85));
+    animation: none;
+    opacity: 0.6;
+  }
+  @keyframes twinkle{
+    0%, 100%{ opacity: 0.55; transform: scale(0.92); }
+    50%{ opacity: 1; transform: scale(1.15); }
+  }
+  .star-message-overlay{
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 1300;
+    max-width: 300px;
+    background: rgba(255,255,255,0.98);
+    color: var(--ink);
+    padding: 28px 26px;
+    border-radius: 20px;
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+    animation: eggPop 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
+    cursor: pointer;
+  }
+  .star-message-overlay.fade{ animation: eggFadeOut 0.4s ease forwards; }
+  .star-message-overlay .close-hint{
+    display: block;
+    margin-top: 16px;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+  }
+  .floating-emoji{
+    position: fixed;
+    bottom: 30px;
+    font-size: 2.4rem;
+    animation: floatUp 3s ease-out forwards;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .floating-message{
+    position: fixed;
+    bottom: 30px;
+    max-width: 220px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 9px 14px;
+    box-shadow: var(--shadow);
+    animation: floatUp 3.4s ease-out forwards;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .floating-message .fm-name{
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--plum);
+    margin-bottom: 2px;
+  }
+  .floating-message .fm-text{
+    font-size: 0.88rem;
+    line-height: 1.35;
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+</style>
+</head>
+<body>
+
+  <button class="star-teaser-btn hidden" id="starTeaserBtn" title="✨">✨</button>
+
+  <!-- ===================== SCREEN 1: NAME ===================== -->
+  <div id="name-screen" class="screen">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Zwei <em>Antworten</em></h1>
+        <p class="subtitle">Eine Frage. Zwei Perspektiven. Trag deinen Namen ein und leg los.</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="gear-btn hidden" id="openEasterEggHelpBtn" title="Easter Eggs anzeigen">❓</button>
+        <button class="gear-btn hidden" id="openSettingsBtn" title="Fragen bearbeiten">⚙</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="playerNameInput">Dein Name</label>
+      <input type="text" id="playerNameInput" placeholder="z. B. Anna" autocomplete="off">
+      <button class="btn-primary" id="startBtn">Spiel starten</button>
+      <p class="waiting-note" id="nameError" style="color:#B24040; display:none;">Bitte gib zuerst deinen Namen ein.</p>
+      <button class="btn-ghost hidden" id="soloModeBtn" style="width:100%; margin-top:12px;">🎲 Solo-Modus: Fragen einfach vorlesen</button>
+    </div>
+  </div>
+
+  <!-- ===================== SOLO-MODUS SCREEN ===================== -->
+  <div id="solo-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Solo-<em>Modus</em></h1>
+        <p class="subtitle">Eine Frage nach der anderen, ganz in Ruhe für dich.</p>
+      </div>
+      <button class="gear-btn" id="soloBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card">
+      <div class="question-eyebrow" id="soloCounter">Frage</div>
+      <p class="question-text" id="soloQuestionText">—</p>
+      <button class="btn-primary" id="soloNextBtn">Nächste Frage →</button>
+    </div>
+  </div>
+
+  <!-- ===================== STERNENHIMMEL-MINISPIEL ===================== -->
+  <div id="star-sky-screen" class="star-sky-screen hidden">
+    <div class="star-sky-topbar">
+      <span class="star-sky-title">Tipp einen Stern an ✨</span>
+      <button class="star-sky-back" id="starSkyBackBtn" title="Zurück">←</button>
+    </div>
+    <div id="starField"></div>
+  </div>
+
+  <!-- ===================== EASTER-EGG-HILFE (nur admin) ===================== -->
+  <div id="easter-egg-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2>Versteckte Easter Eggs</h2>
+      <p class="hint">Diese Wörter im Namensfeld lösen etwas Verstecktes aus:</p>
+      <div style="max-height: 360px; overflow-y: auto;">
+        <ul style="padding-left: 18px; margin: 0; line-height: 1.8; font-size: 0.92rem;">
+          <li><strong>admin</strong> — schaltet die Einstellungen frei (Fragen bearbeiten, Reset, Export)</li>
+          <li><strong>Single / single</strong> — öffnet den Solo-Vorlese-Modus</li>
+          <li><strong>Liz</strong> — Stern-Button oben rechts zum Sternenhimmel-Minispiel + süßer Spruch</li>
+          <li><strong>Hey Daddy</strong> — „Na dann, Daddy 😏🔥"</li>
+          <li><strong>Baby</strong> — „Immer für dich da, mein Schatz 🥰"</li>
+          <li><strong>Schatz</strong> — „Nur das Beste für dich, Schatz 💛"</li>
+          <li><strong>Ich liebe dich</strong> — „Ich liebe dich noch mehr ❤️‍🔥"</li>
+          <li><strong>Bae</strong> — „Für immer dein Bae 😘"</li>
+          <li><strong>Pizza</strong> — „Mmmh 🍕 … aber DU bist trotzdem meine Nummer 1"</li>
+          <li><strong>WOP / WoP / wop</strong> — öffnet das Wahrheit-oder-Pflicht-Minispiel</li>
+        </ul>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="closeEasterEggHelpBtn" style="width:100%;">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== WAHRHEIT ODER PFLICHT: SETUP ===================== -->
+  <div id="wop-setup-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Wahrheit oder <em>Pflicht</em></h1>
+        <p class="subtitle">Namen eintragen, Modus & Schwierigkeit wählen, los geht's.</p>
+      </div>
+      <button class="gear-btn" id="wopSetupBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card">
+      <label for="wopName1">Spieler 1</label>
+      <input type="text" id="wopName1" placeholder="Simon" autocomplete="off">
+
+      <label for="wopName2" style="margin-top:14px;">Spieler 2</label>
+      <input type="text" id="wopName2" placeholder="Liz" autocomplete="off">
+
+      <label style="margin-top:20px;">Spielmodus</label>
+      <div class="toggle-row" id="wopModeToggle">
+        <button type="button" class="toggle-btn active" data-mode="random">🎲 Zufällig</button>
+        <button type="button" class="toggle-btn" data-mode="choose">🙋 Selbst entscheiden</button>
+      </div>
+
+      <label style="margin-top:20px;">Schwierigkeitsgrad</label>
+      <div class="toggle-row" id="wopDifficultyToggle">
+        <button type="button" class="toggle-btn active" data-difficulty="romantic">❤️ Romantisch</button>
+        <button type="button" class="toggle-btn" data-difficulty="bold">🔥 Mutig</button>
+        <button type="button" class="toggle-btn" data-difficulty="mixed">✨ Gemischt</button>
+      </div>
+
+      <button class="btn-primary" id="wopStartBtn" style="margin-top:22px;">Spiel starten</button>
+    </div>
+  </div>
+
+  <!-- ===================== WAHRHEIT ODER PFLICHT: SPIEL ===================== -->
+  <div id="wop-game-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Wahrheit oder <em>Pflicht</em></h1>
+        <p class="subtitle" id="wopTurnLabel">—</p>
+      </div>
+      <button class="gear-btn" id="wopGameBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card">
+      <div class="hidden" id="wopChoiceArea">
+        <p style="text-align:center; margin-bottom:16px; color:var(--ink-muted);">Wahrheit oder Pflicht?</p>
+        <div class="modal-actions">
+          <button class="btn-ghost" id="wopChooseTruthBtn" style="flex:1;">💬 Wahrheit</button>
+          <button class="btn-primary" id="wopChooseDareBtn" style="flex:1; margin-top:0;">🎯 Pflicht</button>
+        </div>
+      </div>
+      <div class="hidden" id="wopChallengeArea">
+        <div class="question-eyebrow" id="wopChallengeTag">💬 Wahrheit</div>
+        <p class="question-text" id="wopChallengeText">—</p>
+        <button class="btn-primary" id="wopNextTurnBtn">Nächste Runde →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SETTINGS MODAL ===================== -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2>Fragen bearbeiten</h2>
+      <p class="hint">
+        Eine Frage pro Zeile. Du kannst hier alle Fragen auf einmal einfügen (z. B. eine Liste von 100 Fragen) —
+        die App erkennt automatisch jede Zeile als eigene Frage. Beim Speichern wird die Reihenfolge zufällig gemischt und das Spiel auf Frage 1 zurückgesetzt.
+      </p>
+      <label for="questionsInput">Fragenliste</label>
+      <textarea id="questionsInput">Was war dein schönster Moment mit mir bisher?
+Welche Kleinigkeit an mir macht dich glücklich?
+Wovor hast du im Moment am meisten Respekt in deinem Leben?
+Was schätzt du an unserer Beziehung am meisten?
+Wenn wir übermorgen verreisen könnten, wohin würdest du uns schicken?
+Was ist etwas, das du noch nie jemandem erzählt hast?
+Welche Angewohnheit von mir bringt dich zum Lächeln?
+Was würdest du gerne gemeinsam mit mir lernen?
+Woran denkst du, wenn du an unsere Zukunft denkst?
+Was war der Moment, in dem du gemerkt hast, dass du mich magst?
+Was ist deine liebste gemeinsame Erinnerung mit mir?
+Wenn du einen Tag noch einmal mit mir erleben könntest, welchen würdest du wählen?
+Was war dein erster Eindruck von mir?
+Welches Kompliment hast du mir noch nie gemacht, wolltest es aber schon lange?
+Was ist etwas, das ich tue, das dich zum Lachen bringt?
+Wie würdest du unsere Beziehung in drei Wörtern beschreiben?
+Was war das Beste, das ich je zu dir gesagt habe?
+Welche gemeinsame Gewohnheit von uns magst du am meisten?
+Was denkst du, ist meine beste Eigenschaft?
+Woran erkennst du, dass ich einen schlechten Tag hatte?
+Was ist ein Traum, den du dir mit mir erfüllen möchtest?
+Wo siehst du uns in fünf Jahren?
+Welches Abenteuer würdest du gerne mit mir erleben?
+Was würdest du gerne noch über mich lernen?
+Wenn du ein Haus mit mir bauen könntest, wie würde es aussehen?
+Was ist dein größter Wunsch für unsere gemeinsame Zukunft?
+Welche Tradition würdest du gerne mit mir starten?
+Wie stellst du dir einen perfekten gemeinsamen Sonntag vor?
+Was möchtest du unbedingt einmal mit mir zusammen tun, bevor wir alt sind?
+Wenn wir ein Haustier hätten, welches wäre es und wie würde es heißen?
+Was ist deine liebste Kindheitserinnerung?
+Welche Angst hast du überwunden, auf die du stolz bist?
+Was würdest du dein jüngeres Ich gerne wissen lassen?
+Welche Person hat dein Leben am meisten geprägt?
+Was war der schwierigste Moment in deinem Leben bisher?
+Wofür bist du in deinem Leben am dankbarsten?
+Was war ein Fehler, aus dem du am meisten gelernt hast?
+Welche Eigenschaft an dir hat sich in den letzten Jahren am meisten verändert?
+Was macht dich stolz auf dich selbst?
+Welche Erinnerung an deine Familie ist dir besonders wichtig?
+Wenn du einen Tag lang jemand anderes sein könntest, wer wäre das?
+Was ist dein Lieblingsgeräusch?
+Welchen Ort auf der Welt möchtest du unbedingt einmal sehen?
+Wenn du eine Fähigkeit sofort meistern könntest, welche wäre es?
+Was würdest du tun, wenn Geld keine Rolle spielen würde?
+Welches Buch oder welcher Film hat dich am meisten beeinflusst?
+Wenn du für einen Tag unsichtbar wärst, was würdest du tun?
+Was ist die verrückteste Sache, die du je gemacht hast?
+Wenn du drei Dinge auf eine einsame Insel mitnehmen dürftest, welche wären es?
+Was ist dein liebstes Wort in irgendeiner Sprache?
+Welches Talent hättest du gerne, das du nicht hast?
+Was macht für dich ein gutes Leben aus?
+Welchen Wert möchtest du unbedingt an deine Kinder weitergeben, falls du welche hast?
+Was bedeutet für dich echtes Glück?
+Wie gehst du am liebsten mit Stress um?
+Was gibt dir am meisten Kraft in schwierigen Zeiten?
+Welche Lektion hat dir das Leben bisher am deutlichsten beigebracht?
+Was bedeutet Vertrauen für dich?
+Wie zeigst du jemandem, dass er dir wichtig ist?
+Was ist für dich der Unterschied zwischen Verliebtsein und Lieben?
+Was brauchst du von mir, wenn es dir nicht gut geht?
+Was war ein Moment, in dem du dich von mir wirklich verstanden gefühlt hast?
+Gibt es etwas, das du dir schon lange von mir wünschst, aber nie gesagt hast?
+Was können wir als Paar noch besser machen?
+Wie fühlst du dich am wohlsten, wenn wir einen Streit hatten?
+Was schätzt du an der Art, wie wir miteinander kommunizieren?
+Was war eine Situation, in der du dich auf mich verlassen konntest?
+Gibt es eine Angewohnheit von dir, die du gerne ändern würdest?
+Was macht dich in unserer Beziehung manchmal unsicher?
+Wie kann ich dir zeigen, dass ich dich liebe, auf eine Art, die dir wirklich wichtig ist?
+Was war der Moment, in dem du wusstest, dass du mir vertrauen kannst?
+Wenn du für einen Moment in meinen Kopf schauen könntest, was würdest du gerne wissen?
+Was ist ein Klischee über Liebe, das du für wahr hältst?
+Wenn unsere Beziehung ein Lied wäre, welches wäre es?
+Was verbindest du mit dem Wort Zuhause?
+Welche kleine Geste bedeutet dir mehr als große Geschenke?
+Was ist dein Lieblingsmoment im Alltag mit mir?
+Welche Erinnerung an uns würdest du niemals vergessen wollen?
+Was löst bei dir sofort ein Lächeln aus, wenn du an mich denkst?
+Wenn du mich mit einer Jahreszeit vergleichen würdest, welche wäre es und warum?
+Was bewunderst du an mir, das ich vielleicht selbst nicht so sehe?
+Welche Frage wolltest du mir schon immer stellen, hast dich aber nie getraut?
+Was war die schönste Überraschung, die du je erlebt hast?
+Wenn du eine Fähigkeit von mir haben könntest, welche wäre es?
+Was ist etwas Kleines, das dir großen Trost gibt?
+Welche Erinnerung aus deiner Kindheit möchtest du gerne mit mir teilen?
+Wenn wir gemeinsam ein Café eröffnen würden, wie würde es heißen?
+Was ist eine Erfahrung, die dich verändert hat?
+Welchen Rat würdest du jemandem geben, der gerade eine schwere Zeit durchmacht?
+Was macht dir am meisten Freude, wenn du an niemanden denken musst außer dich selbst?
+Welche Musik beschreibt deine aktuelle Lebensphase am besten?
+Was ist dein Lieblingssatz oder Zitat, das dich begleitet?
+Wenn du eine Superkraft hättest, wie würdest du sie im Alltag nutzen?
+Was war ein Moment, in dem du besonders mutig warst?
+Welche Erinnerung an uns beide löst bei dir die meisten Schmetterlinge aus?
+Was denkst du, macht uns als Paar besonders?
+Wie stellst du dir vor, wie wir in 20 Jahren zusammen sind?
+Was ist eine Sache, die du an mir liebst, die niemand sonst sieht?
+Welchen gemeinsamen Moment würdest du gerne noch einmal erleben?
+Was ist dein Lieblingsplatz, wenn wir zusammen sind?
+Wann fühlst du dich mir am nächsten?
+Was geht dir durch den Kopf, wenn wir uns lange in die Augen schauen?
+Wann hast du dich das erste Mal gefragt, ob zwischen uns mehr sein könnte?
+Was macht mich für dich besonders attraktiv?
+Welche Eigenschaft von mir hat dich am meisten überrascht?
+Wann hast du dich das letzte Mal richtig nach mir gesehnt?
+Was vermisst du am meisten, wenn wir uns länger nicht sehen?
+Was würdest du gerne häufiger mit mir erleben?
+Welcher Moment mit mir hat sich für dich angefühlt, als würde die Zeit stehen bleiben?
+Wann hast du dich das letzte Mal richtig geborgen gefühlt?
+Welche Berührung von mir bedeutet dir am meisten?
+Wo fühlst du dich bei mir am sichersten?
+Was würdest du gerne öfter von mir hören?
+Wann fühlst du dich von mir besonders verstanden?
+Was macht für dich echte Intimität aus?
+Wobei vergisst du mit mir alles um dich herum?
+Welche Erinnerung an uns bekommst du nicht mehr aus dem Kopf?
+Was macht unsere Beziehung anders als frühere?
+Was war der romantischste Moment zwischen uns?
+Wodurch fühlst du dich von mir geliebt?
+Welches Kompliment von mir hat dich am meisten berührt?
+Wann bist du bei mir besonders nervös?
+Wann bringe ich dich am leichtesten zum Erröten?
+Welche Nachricht von mir würdest du nie löschen?
+Was denkst du unmittelbar, wenn mein Name auf deinem Handy erscheint?
+Wobei würdest du am liebsten ganz nah bei mir sein?
+Welchen gemeinsamen Moment würdest du gern einfrieren?
+Wann hast du zuletzt Schmetterlinge wegen mir gespürt?
+Was würdest du gerne einmal ganz offen mit mir besprechen?
+Welche Seite von dir kennt fast niemand außer mir?
+Was glaubst du, macht uns als Paar stark?
+Wann warst du besonders stolz auf uns?
+Wobei ergänzen wir uns am besten?
+Welche Macke von mir ist dir inzwischen richtig ans Herz gewachsen?
+Welche gemeinsame Erinnerung macht dich sofort glücklich?
+Was würdest du mit mir machen, wenn wir einen ganzen Tag komplett allein hätten?
+Wobei würdest du dir wünschen, dass wir uns mehr Zeit nehmen?
+Was möchtest du unbedingt noch einmal mit mir erleben?
+Welcher Ort fühlt sich wegen mir besonders schön an?
+Wofür bist du in unserer Beziehung am dankbarsten?
+Wann findest du mich am charmantesten?
+Was bringt dein Herz bei mir ein kleines bisschen schneller zum Schlagen?
+Wann hattest du zuletzt das Bedürfnis, mich einfach festzuhalten?
+Welcher Blick von mir macht dich schwach?
+Was würdest du gerne einmal tun, hast dich bisher aber nicht getraut zu fragen?
+Was ist ein romantischer Wunsch, den du dir mit mir erfüllen möchtest?
+Welche kleine Geste zwischen uns bedeutet dir mehr als viele Worte?
+Worin möchtest du, dass wir als Paar noch wachsen?
+Was hoffst du, dass wir in fünf Jahren über uns sagen können?
+Was würdest du mir sagen, wenn du wüsstest, dass ich es nie vergessen werde?
+Was findest du an mir körperlich am attraktivsten?
+Wann fandest du mich bisher am heißesten?
+Welche Art von Kuss magst du am liebsten?
+Wo würdest du mich am liebsten spontan küssen?
+Was ist romantischer: Kuscheln oder Küssen?
+Was lässt dein Herz bei mir schneller schlagen?
+Welche Situation zwischen uns fandest du besonders knisternd?
+Wann warst du wegen mir zuletzt nervös?
+Was macht einen Kuss für dich perfekt?
+Was ist dein Lieblingsmoment, wenn wir uns sehen?
+Was bedeutet körperliche Nähe für dich?
+Wobei fühlst du dich mir besonders verbunden?
+Was macht einen romantischen Abend für dich aus?
+Wie wichtig sind Umarmungen für dich?
+Wann würdest du mich am liebsten einfach festhalten?
+Was macht einen Moment zwischen zwei Menschen besonders intim?
+Welche Geste findest du besonders verführerisch?
+Welche Kleinigkeit kann jemanden attraktiv wirken lassen?
+Welcher Blick sagt manchmal mehr als Worte?
+Was macht Selbstbewusstsein attraktiv?
+Lieber lange Umarmung oder langer Kuss?
+Was bringt dich eher zum Erröten – ein Kompliment oder ein intensiver Blick?
+Was wäre für dich das perfekte Date zu zweit?
+Welche Art von Flirten gefällt dir am meisten?
+Magst du lieber süße oder freche Komplimente?
+Was ist romantischer: Kerzen oder Sternenhimmel?
+Was ist dein Lieblingsgeruch bei einem Menschen?
+Welche Stimme findest du besonders attraktiv?
+Was macht jemanden charmant?
+Was würdest du an einem gemeinsamen Wellness-Wochenende am meisten genießen?
+Was ist für dich wichtiger: emotionale oder körperliche Nähe?
+Wodurch fühlst du dich begehrt?
+Was bedeutet Vertrauen für dich in einer Beziehung?
+Was macht einen Menschen insgesamt attraktiv?
+Welche Eigenschaft macht jemanden unwiderstehlich?
+Wann fühlst du dich besonders wohl mit mir?
+Welche romantische Überraschung würdest du dir wünschen?
+Welche gemeinsame Erinnerung bringt dich zum Grinsen?
+Welche Situation würdest du gern noch einmal erleben?
+Was macht für dich echte Chemie zwischen zwei Menschen aus?
+Wenn wir einen Abend ganz für uns hätten – wie würde er aussehen?
+Welche Berührung beruhigt dich am meisten?
+Was würdest du gerne öfter mit mir machen (außer Essen gehen)?
+Welche Art von Nähe bedeutet dir am meisten?
+Was macht einen Menschen für dich sexy, ohne dass es etwas mit dem Aussehen zu tun hat?
+Wann fühlst du dich besonders selbstbewusst?
+Welches Kompliment bringt dich am ehesten zum Lächeln?
+Was würdest du gerne noch über mich herausfinden?
+Was macht unsere Beziehung für dich besonders?
+Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antworte?</textarea>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="closeSettingsBtn">Abbrechen</button>
+        <button class="btn-primary" id="saveQuestionsBtn" style="margin-top:0;">Speichern</button>
+      </div>
+
+      <div style="margin-top:28px; padding-top:22px; border-top:1px solid var(--line);">
+        <h2 style="font-size:1.05rem;">Neues Spiel starten</h2>
+        <p class="hint">
+          Entfernt alle aktuell beigetretenen Spieler und setzt das Spiel auf Frage 1 zurück.
+          Eure Fragenliste bleibt dabei erhalten. Nützlich, wenn sich aus Versehen zu viele Geräte eingetragen haben.
+        </p>
+        <button class="btn-ghost" id="resetGameBtn" style="width:100%; border-color:#B24040; color:#B24040;">Alle Spieler entfernen &amp; neu starten</button>
+      </div>
+
+      <div style="margin-top:24px; padding-top:22px; border-top:1px solid var(--line);">
+        <h2 style="font-size:1.05rem;">Nachrichten exportieren</h2>
+        <p class="hint">
+          Lädt alle bisher verschickten Kurznachrichten als Textdatei herunter. Im Spiel selbst wird der Verlauf nirgends angezeigt — nur hier.
+        </p>
+        <button class="btn-ghost" id="exportChatBtn" style="width:100%;">Nachrichten als .txt herunterladen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 2: GAME ===================== -->
+  <div id="game-screen" class="screen hidden">
+    <div class="status-line" style="justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="gear-btn" id="gameBackBtn" title="Zurück" style="width:34px; height:34px; font-size:0.95rem;">←</button>
+        <span class="dot" id="partnerDot"></span>
+        <span id="partnerStatus">Warte, bis noch jemand beitritt …</span>
+      </div>
+      <button class="gear-btn hidden" id="openSettingsBtnGame" title="Einstellungen" style="width:34px; height:34px; font-size:0.95rem;">⚙</button>
+    </div>
+
+    <div class="quick-msg-bar">
+      <input type="text" id="quickMsgInput" placeholder="💬 Kurze Nachricht schreiben & Enter drücken …" autocomplete="off">
+      <button id="quickMsgSendBtn" title="Senden">➤</button>
+    </div>
+
+    <p class="waiting-note hidden" id="pendingQuestionNote" style="text-align:left; background:var(--plum-soft); color:var(--plum); padding:10px 14px; border-radius:10px; font-weight:600;"></p>
+
+    <div class="card">
+      <div id="noQuestionsMsg" class="hidden">
+        <p>Es sind noch keine Fragen hinterlegt. Öffne die Einstellungen auf dem Startbildschirm und füge welche hinzu.</p>
+      </div>
+
+      <div id="questionArea">
+        <div class="question-eyebrow" id="questionCounter">Frage 1</div>
+        <p class="waiting-note hidden" id="customQuestionTag" style="text-align:left; margin:-14px 0 14px; color:var(--gold); font-weight:700;"></p>
+        <p class="question-text" id="questionText">—</p>
+
+        <div class="answer-form" id="answerForm">
+          <label for="answerInput">Deine Antwort</label>
+          <textarea id="answerInput" placeholder="Schreib, was dir durch den Kopf geht …"></textarea>
+          <button class="btn-primary" id="submitAnswerBtn">Abschicken</button>
+        </div>
+
+        <p class="waiting-note hidden" id="waitingNote">Deine Antwort ist gespeichert. Warte auf die zweite Antwort …</p>
+
+        <div class="tiles hidden" id="tilesArea"></div>
+
+        <div class="hidden" id="whatsappBtnWrap" style="margin-top:14px;">
+          <button class="btn-ghost" id="discussWhatsappBtn" style="width:100%; border-color:#25D366; color:#25D366; font-weight:700;">📲 Lass uns das in WhatsApp besprechen!</button>
+        </div>
+
+        <div id="addQuestionWrap" style="margin-top:18px; padding-top:16px; border-top:1px solid var(--line);">
+          <button class="btn-ghost" id="openAddQuestionBtn" style="width:100%;">➕ Ich hab noch eine Frage</button>
+          <div class="hidden" id="addQuestionForm" style="margin-top:10px;">
+            <input type="text" id="customQuestionInput" placeholder="Deine Frage …" autocomplete="off">
+            <div class="modal-actions" style="margin-top:10px;">
+              <button class="btn-ghost" id="cancelAddQuestionBtn">Abbrechen</button>
+              <button class="btn-primary" id="submitCustomQuestionBtn" style="margin-top:0;">Einreichen</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="next-btn-wrap hidden" id="nextBtnWrap">
+          <button class="btn-primary" id="nextQuestionBtn" style="margin-top:0;">Nächste Frage →</button>
+        </div>
+
+        <div class="finished-box hidden" id="finishedBox">
+          <p class="big">Das waren alle Fragen 💬</p>
+          <p class="waiting-note">Füg in den Einstellungen neue hinzu, um weiterzuspielen.</p>
+        </div>
+
+        <div class="reaction-bar" id="reactionBar"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* ================================================================
+     FIREBASE-KONFIGURATION
+     Ersetze die Werte unten mit denen aus deinem eigenen, kostenlosen
+     Firebase-Projekt (Anleitung dazu bekommst du separat).
+     ================================================================ */
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtJQ2JTR_-nwdoExGGO1aLjG_PPP6dfoc",
+    authDomain: "kennenlernspiel.firebaseapp.com",
+    databaseURL: "https://kennenlernspiel-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "kennenlernspiel",
+    storageBucket: "kennenlernspiel.firebasestorage.app",
+    messagingSenderId: "1029346851054",
+    appId: "1:1029346851054:web:037e8a3c2c362511995bff",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const sessionRef = db.ref('kennenlernspiel_session');
+
+  // ---------- eigene Spieler-ID (bleibt auf diesem Gerät/Browser gespeichert) ----------
+  function getOrCreateId(){
+    let id = localStorage.getItem('zweiAntworten_playerId');
+    if(!id){
+      id = 'p_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem('zweiAntworten_playerId', id);
+    }
+    return id;
+  }
+  const myId = getOrCreateId();
+
+  // ---------- Elemente ----------
+  const nameScreen = document.getElementById('name-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const settingsModal = document.getElementById('settings-modal');
+
+  const playerNameInput = document.getElementById('playerNameInput');
+  const startBtn = document.getElementById('startBtn');
+  const nameError = document.getElementById('nameError');
+
+  const openSettingsBtn = document.getElementById('openSettingsBtn');
+  const openSettingsBtnGame = document.getElementById('openSettingsBtnGame');
+  const gameBackBtn = document.getElementById('gameBackBtn');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  const saveQuestionsBtn = document.getElementById('saveQuestionsBtn');
+  const questionsInput = document.getElementById('questionsInput');
+  const resetGameBtn = document.getElementById('resetGameBtn');
+  const exportChatBtn = document.getElementById('exportChatBtn');
+
+  const partnerStatus = document.getElementById('partnerStatus');
+  const partnerDot = document.getElementById('partnerDot');
+
+  const noQuestionsMsg = document.getElementById('noQuestionsMsg');
+  const questionArea = document.getElementById('questionArea');
+  const questionCounter = document.getElementById('questionCounter');
+  const questionText = document.getElementById('questionText');
+
+  const answerForm = document.getElementById('answerForm');
+  const answerInput = document.getElementById('answerInput');
+  const submitAnswerBtn = document.getElementById('submitAnswerBtn');
+  const waitingNote = document.getElementById('waitingNote');
+
+  const tilesArea = document.getElementById('tilesArea');
+  const whatsappBtnWrap = document.getElementById('whatsappBtnWrap');
+  const discussWhatsappBtn = document.getElementById('discussWhatsappBtn');
+  const pendingQuestionNote = document.getElementById('pendingQuestionNote');
+  const customQuestionTag = document.getElementById('customQuestionTag');
+  const addQuestionWrap = document.getElementById('addQuestionWrap');
+  const openAddQuestionBtn = document.getElementById('openAddQuestionBtn');
+  const addQuestionForm = document.getElementById('addQuestionForm');
+  const customQuestionInput = document.getElementById('customQuestionInput');
+  const cancelAddQuestionBtn = document.getElementById('cancelAddQuestionBtn');
+  const submitCustomQuestionBtn = document.getElementById('submitCustomQuestionBtn');
+  const nextBtnWrap = document.getElementById('nextBtnWrap');
+  const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+  const finishedBox = document.getElementById('finishedBox');
+
+  const quickMsgInput = document.getElementById('quickMsgInput');
+  const quickMsgSendBtn = document.getElementById('quickMsgSendBtn');
+  const reactionBar = document.getElementById('reactionBar');
+
+  const soloModeBtn = document.getElementById('soloModeBtn');
+  const soloScreen = document.getElementById('solo-screen');
+  const soloBackBtn = document.getElementById('soloBackBtn');
+  const soloCounter = document.getElementById('soloCounter');
+  const soloQuestionText = document.getElementById('soloQuestionText');
+  const soloNextBtn = document.getElementById('soloNextBtn');
+
+  const starTeaserBtn = document.getElementById('starTeaserBtn');
+  const starSkyScreen = document.getElementById('star-sky-screen');
+  const starSkyBackBtn = document.getElementById('starSkyBackBtn');
+  const starField = document.getElementById('starField');
+
+  const openEasterEggHelpBtn = document.getElementById('openEasterEggHelpBtn');
+  const easterEggModal = document.getElementById('easter-egg-modal');
+  const closeEasterEggHelpBtn = document.getElementById('closeEasterEggHelpBtn');
+
+  const wopSetupScreen = document.getElementById('wop-setup-screen');
+  const wopGameScreen = document.getElementById('wop-game-screen');
+  const wopSetupBackBtn = document.getElementById('wopSetupBackBtn');
+  const wopGameBackBtn = document.getElementById('wopGameBackBtn');
+  const wopName1 = document.getElementById('wopName1');
+  const wopName2 = document.getElementById('wopName2');
+  const wopModeToggle = document.getElementById('wopModeToggle');
+  const wopDifficultyToggle = document.getElementById('wopDifficultyToggle');
+  const wopStartBtn = document.getElementById('wopStartBtn');
+  const wopTurnLabel = document.getElementById('wopTurnLabel');
+  const wopChoiceArea = document.getElementById('wopChoiceArea');
+  const wopChooseTruthBtn = document.getElementById('wopChooseTruthBtn');
+  const wopChooseDareBtn = document.getElementById('wopChooseDareBtn');
+  const wopChallengeArea = document.getElementById('wopChallengeArea');
+  const wopChallengeTag = document.getElementById('wopChallengeTag');
+  const wopChallengeText = document.getElementById('wopChallengeText');
+  const wopNextTurnBtn = document.getElementById('wopNextTurnBtn');
+
+  // ---------- lokaler Zustand ----------
+  let myName = localStorage.getItem('zweiAntworten_playerName') || '';
+  let questionsList = [];
+  let players = {};
+  let currentIndex = 0;
+  let currentAnswers = {};
+  let customQuestions = {};
+  let soloQueue = [];
+  let soloPos = 0;
+
+  playerNameInput.value = myName;
+
+  function updateSettingsAccess(){
+    const val = playerNameInput.value.trim();
+    const lower = val.toLowerCase();
+    const isAdmin = lower === 'admin';
+    const isSingle = lower === 'single';
+    const isLiz = lower === 'liz';
+    openSettingsBtn.classList.toggle('hidden', !isAdmin);
+    openEasterEggHelpBtn.classList.toggle('hidden', !isAdmin);
+    soloModeBtn.classList.toggle('hidden', !isSingle);
+    starTeaserBtn.classList.toggle('hidden', !isLiz);
+  }
+  playerNameInput.addEventListener('input', updateSettingsAccess);
+  updateSettingsAccess();
+
+  // ---------- Easter Eggs im Namensfeld ----------
+  const EASTER_EGGS = [
+    {
+      match: 'hey daddy',
+      text: 'Na dann, Daddy 😏🔥',
+      emojis: ['🔥', '😏', '💋', '😈'],
+      gradient: 'linear-gradient(135deg, #ff4d6d, #c9184a, #590d22)'
+    },
+    {
+      match: 'liz',
+      text: 'Na du süße Maus 😘💕',
+      emojis: ['💕', '😘', '🌸', '✨'],
+      gradient: 'linear-gradient(135deg, #ff6fa5, #ff8f6c, #ffd76f)'
+    },
+    {
+      match: 'baby',
+      text: 'Immer für dich da, mein Schatz 🥰',
+      emojis: ['🥰', '💛', '🌟', '✨'],
+      gradient: 'linear-gradient(135deg, #ffd76f, #ff9a6c, #ff6fa5)'
+    },
+    {
+      match: 'schatz',
+      text: 'Nur das Beste für dich, Schatz 💛',
+      emojis: ['💛', '✨', '🌟'],
+      gradient: 'linear-gradient(135deg, #ffe27a, #ffb26f)'
+    },
+    {
+      match: 'ich liebe dich',
+      text: 'Ich liebe dich noch mehr ❤️‍🔥',
+      emojis: ['❤️‍🔥', '💞', '✨', '💫'],
+      gradient: 'linear-gradient(135deg, #ff4d6d, #ff8fab)'
+    },
+    {
+      match: 'bae',
+      text: 'Für immer dein Bae 😘',
+      emojis: ['😘', '💘', '🌹'],
+      gradient: 'linear-gradient(135deg, #ff6fa5, #b56bff)'
+    },
+    {
+      match: 'pizza',
+      text: 'Mmmh 🍕 … aber DU bist trotzdem meine Nummer 1',
+      emojis: ['🍕', '😋', '❤️'],
+      gradient: 'linear-gradient(135deg, #ffb347, #ff5e5e)'
+    }
+  ];
+
+  function triggerEasterEgg(egg){
+    const overlay = document.createElement('div');
+    overlay.className = 'hey-daddy-overlay';
+    overlay.style.background = egg.gradient;
+    overlay.textContent = egg.text;
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+      overlay.classList.add('fade');
+      setTimeout(() => overlay.remove(), 650);
+    }, 2200);
+
+    egg.emojis.forEach((e, i) => {
+      setTimeout(() => spawnFloatingEmoji(e), i * 130);
+    });
+  }
+
+  let activeEggMatch = null;
+  playerNameInput.addEventListener('input', () => {
+    const val = playerNameInput.value.trim().toLowerCase();
+
+    if(val === 'wop'){
+      nameScreen.classList.add('hidden');
+      wopSetupScreen.classList.remove('hidden');
+      return;
+    }
+
+    const egg = EASTER_EGGS.find(eg => eg.match === val);
+    if(egg){
+      if(activeEggMatch !== val){
+        activeEggMatch = val;
+        triggerEasterEgg(egg);
+      }
+    } else {
+      activeEggMatch = null;
+    }
+  });
+
+  // ---------- Easter-Egg-Hilfe ----------
+  openEasterEggHelpBtn.addEventListener('click', () => easterEggModal.classList.remove('hidden'));
+  closeEasterEggHelpBtn.addEventListener('click', () => easterEggModal.classList.add('hidden'));
+
+  // ---------- Einstellungen ----------
+  openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+  openSettingsBtnGame.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+  closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+  resetGameBtn.addEventListener('click', () => {
+    const ok = confirm('Wirklich alle Spieler entfernen und bei Frage 1 neu anfangen? Eure Fragenliste bleibt erhalten.');
+    if(!ok) return;
+
+    sessionRef.child('players').remove();
+    sessionRef.child('answers').remove();
+    sessionRef.child('currentIndex').set(0);
+    sessionRef.child('reactions').remove();
+    sessionRef.child('customQuestions').remove();
+
+    settingsModal.classList.add('hidden');
+    gameScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
+  function shuffleArray(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ---------- Solo-Modus (nur bei Name "Single"/"single") ----------
+  soloModeBtn.addEventListener('click', () => {
+    sessionRef.child('questions').once('value').then(snap => {
+      const qs = snap.val() || [];
+      if(qs.length === 0){
+        alert('Es sind noch keine Fragen hinterlegt. Bitte lass zuerst jemanden mit Zugriff auf die Einstellungen welche eintragen.');
+        return;
+      }
+      soloQueue = shuffleArray(qs);
+      soloPos = 0;
+      nameScreen.classList.add('hidden');
+      soloScreen.classList.remove('hidden');
+      renderSoloQuestion();
+    });
+  });
+
+  function renderSoloQuestion(){
+    if(soloPos >= soloQueue.length){
+      soloQueue = shuffleArray(soloQueue);
+      soloPos = 0;
+    }
+    soloCounter.textContent = 'Frage ' + (soloPos + 1) + ' von ' + soloQueue.length;
+    soloQuestionText.textContent = soloQueue[soloPos];
+  }
+
+  soloNextBtn.addEventListener('click', () => {
+    soloPos++;
+    renderSoloQuestion();
+  });
+
+  soloBackBtn.addEventListener('click', () => {
+    soloScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
+  gameBackBtn.addEventListener('click', () => {
+    gameScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
+  // ---------- Sternenhimmel-Minispiel ----------
+  const STAR_MESSAGES = [
+    'Du bist das Beste, was mir passiert ist.',
+    'Ich liebe dein Lachen mehr als alles andere.',
+    'Bei dir fühle ich mich zuhause.',
+    'Du machst jeden Tag ein bisschen heller.',
+    'Ich bin so stolz, dass du meine bist.',
+    'Danke, dass du einfach du bist.',
+    'Mit dir will ich alt werden.',
+    'Du bist meine liebste Ablenkung.',
+    'Jeder Moment mit dir ist ein Geschenk.',
+    'Ich könnte stundenlang nur an dich denken.',
+    'Du bist mein Lieblingsmensch.',
+    'Für dich würde ich alles tun.',
+    'Bei dir muss ich nie jemand anderes sein.',
+    'Ich freu mich auf jedes Abenteuer mit dir.',
+    'Du bist mein Zuhause, egal wo wir sind.'
+  ];
+
+  starTeaserBtn.addEventListener('click', () => {
+    renderStarSky();
+    nameScreen.classList.add('hidden');
+    starTeaserBtn.classList.add('hidden');
+    starSkyScreen.classList.remove('hidden');
+  });
+
+  starSkyBackBtn.addEventListener('click', () => {
+    starSkyScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+    updateSettingsAccess();
+  });
+
+  function renderStarSky(){
+    starField.innerHTML = '';
+    const shuffledMessages = shuffleArray(STAR_MESSAGES);
+
+    shuffledMessages.forEach((msg, i) => {
+      const star = document.createElement('button');
+      star.type = 'button';
+      star.className = 'sky-star';
+      star.textContent = '✦';
+      star.style.left = (6 + Math.random() * 84) + '%';
+      star.style.top = (14 + Math.random() * 72) + '%';
+      star.style.animationDelay = (Math.random() * 2) + 's';
+
+      star.addEventListener('click', () => {
+        star.classList.add('opened');
+        showStarMessage(msg);
+      });
+
+      starField.appendChild(star);
+    });
+  }
+
+  function showStarMessage(text){
+    const overlay = document.createElement('div');
+    overlay.className = 'star-message-overlay';
+    overlay.innerHTML = '';
+    const p = document.createElement('div');
+    p.textContent = text;
+    const hint = document.createElement('span');
+    hint.className = 'close-hint';
+    hint.textContent = 'Zum Schließen antippen';
+    overlay.appendChild(p);
+    overlay.appendChild(hint);
+
+    overlay.addEventListener('click', () => {
+      overlay.classList.add('fade');
+      setTimeout(() => overlay.remove(), 400);
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  saveQuestionsBtn.addEventListener('click', () => {
+    const lines = questionsInput.value
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0);
+
+    if(lines.length === 0){
+      alert('Bitte trage mindestens eine Frage ein (eine pro Zeile).');
+      return;
+    }
+
+    const shuffled = shuffleArray(lines);
+
+    sessionRef.child('questions').set(shuffled);
+    sessionRef.child('currentIndex').set(0);
+    sessionRef.child('answers').remove();
+    settingsModal.classList.add('hidden');
+  });
+
+  // ---------- Quick Reactions ----------
+  const REACTIONS = [
+    { emoji: '❤️', label: 'Herz' },
+    { emoji: '🤔', label: 'Nachdenklich' },
+    { emoji: '😬', label: 'Cringe' },
+    { emoji: '🥹', label: 'Süß' },
+    { emoji: '😳', label: 'WTF' },
+    { emoji: '🤷', label: 'Keine Ahnung' },
+    { emoji: '👀', label: 'Bin gespannt' },
+  ];
+
+  REACTIONS.forEach(r => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'reaction-btn';
+    btn.title = r.label;
+    btn.textContent = r.emoji;
+    btn.addEventListener('click', () => sendReaction(r.emoji));
+    reactionBar.appendChild(btn);
+  });
+
+  function sendReaction(emoji){
+    const ref = sessionRef.child('reactions').push({ emoji: emoji, ts: Date.now() });
+    setTimeout(() => ref.remove().catch(() => {}), 6000);
+  }
+
+  function sendWhatsappNudge(){
+    const ref = sessionRef.child('reactions').push({ type: 'whatsapp', ts: Date.now() });
+    setTimeout(() => ref.remove().catch(() => {}), 6000);
+  }
+  discussWhatsappBtn.addEventListener('click', sendWhatsappNudge);
+
+  // ---------- Eigene Frage einreichen ----------
+  openAddQuestionBtn.addEventListener('click', () => {
+    addQuestionForm.classList.remove('hidden');
+    customQuestionInput.focus();
+  });
+  cancelAddQuestionBtn.addEventListener('click', () => {
+    addQuestionForm.classList.add('hidden');
+    customQuestionInput.value = '';
+  });
+
+  submitCustomQuestionBtn.addEventListener('click', () => {
+    const text = customQuestionInput.value.trim();
+    if(!text) return;
+
+    // Frischen Rundenstand direkt aus Firebase holen, um Race Conditions zu vermeiden
+    sessionRef.child('currentIndex').once('value').then(snap => {
+      const freshIndex = snap.val() || 0;
+      const revealAt = freshIndex + 1 + Math.floor(Math.random() * 3);
+
+      sessionRef.child('customQuestions').push({
+        text: text,
+        name: myName,
+        revealAt: revealAt,
+        used: false,
+        ts: Date.now()
+      });
+    });
+
+    customQuestionInput.value = '';
+    addQuestionForm.classList.add('hidden');
+  });
+
+  function spawnFloatingEmoji(emoji){
+    const span = document.createElement('span');
+    span.className = 'floating-emoji';
+    span.textContent = emoji;
+    span.style.left = (10 + Math.random() * 78) + '%';
+    span.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
+    document.body.appendChild(span);
+    span.addEventListener('animationend', () => span.remove());
+  }
+
+  function spawnWhatsappBurst(){
+    // Große Nachricht mit viel Schwung
+    const box = document.createElement('div');
+    box.className = 'floating-power-msg';
+    box.textContent = '📲 Lass uns das in WhatsApp besprechen!';
+    box.style.left = (18 + Math.random() * 44) + '%';
+    document.body.appendChild(box);
+    box.addEventListener('animationend', () => box.remove());
+
+    // Begleitende Emoji-Salve, leicht versetzt
+    const extras = ['💬', '🔥', '✨'];
+    extras.forEach((e, i) => {
+      setTimeout(() => {
+        const span = document.createElement('span');
+        span.className = 'floating-power-emoji';
+        span.textContent = e;
+        span.style.left = (8 + Math.random() * 80) + '%';
+        document.body.appendChild(span);
+        span.addEventListener('animationend', () => span.remove());
+      }, i * 160);
+    });
+  }
+
+  function spawnFloatingMessage(name, text){
+    const box = document.createElement('div');
+    box.className = 'floating-message';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'fm-name';
+    nameEl.textContent = name || 'Jemand';
+    const textEl = document.createElement('div');
+    textEl.className = 'fm-text';
+    textEl.textContent = text.length > 80 ? text.slice(0, 80) + '…' : text;
+    box.appendChild(nameEl);
+    box.appendChild(textEl);
+    box.style.left = (10 + Math.random() * 55) + '%';
+    box.style.setProperty('--rot', (Math.random() * 16 - 8) + 'deg');
+    document.body.appendChild(box);
+    box.addEventListener('animationend', () => box.remove());
+  }
+
+  // ---------- Quick-Nachricht senden (fliegt sofort los, bleibt aber für den Export gespeichert) ----------
+  function sendQuickMessage(){
+    const text = quickMsgInput.value.trim();
+    if(!text) return;
+    sessionRef.child('chat').push({ name: myName, text: text, ts: Date.now() });
+    quickMsgInput.value = '';
+  }
+  quickMsgSendBtn.addEventListener('click', sendQuickMessage);
+  quickMsgInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ sendQuickMessage(); } });
+
+  // ---------- Export (nur über die Einstellungen erreichbar, kein Verlauf im Spiel selbst) ----------
+  exportChatBtn.addEventListener('click', () => {
+    sessionRef.child('chat').once('value').then(snap => {
+      const data = snap.val() || {};
+      const entries = Object.values(data).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      if(entries.length === 0){
+        alert('Es gibt noch keine Nachrichten zum Exportieren.');
+        return;
+      }
+      const lines = entries.map(m => {
+        const d = new Date(m.ts || Date.now());
+        const stamp = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        return '[' + stamp + '] ' + (m.name || 'Jemand') + ': ' + m.text;
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kennenlernspiel-nachrichten.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  // ---------- Spiel starten ----------
+  startBtn.addEventListener('click', () => {
+    const name = playerNameInput.value.trim();
+    if(!name){
+      nameError.style.display = 'block';
+      return;
+    }
+    nameError.style.display = 'none';
+    myName = name;
+    localStorage.setItem('zweiAntworten_playerName', myName);
+
+    sessionRef.child('players').child(myId).set({ name: myName, lastSeen: Date.now() });
+
+    openSettingsBtnGame.classList.toggle('hidden', myName.toLowerCase() !== 'admin');
+
+    nameScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    attachListeners();
+  });
+
+  // ---------- Live-Listener ----------
+  let listenersAttached = false;
+  function attachListeners(){
+    if(listenersAttached) return;
+    listenersAttached = true;
+
+    const chatListenerStartTs = Date.now();
+    const reactionListenerStartTs = Date.now();
+
+    sessionRef.child('players').on('value', snap => {
+      players = snap.val() || {};
+      renderPartnerStatus();
+      renderTiles();
+    });
+
+    sessionRef.child('chat').on('child_added', snap => {
+      const msg = snap.val() || {};
+      if(msg.text && msg.ts && msg.ts > chatListenerStartTs) spawnFloatingMessage(msg.name, msg.text);
+    });
+
+    sessionRef.child('reactions').on('child_added', snap => {
+      const val = snap.val();
+      if(!val || !val.ts || val.ts <= reactionListenerStartTs){
+        // Karteileiche von einer alten Session, die nie automatisch gelöscht wurde -> nur aufräumen, nicht mehr anzeigen
+        snap.ref.remove().catch(() => {});
+        return;
+      }
+      if(val.type === 'whatsapp') spawnWhatsappBurst();
+      else if(val.emoji) spawnFloatingEmoji(val.emoji);
+    });
+
+    sessionRef.child('questions').on('value', snap => {
+      questionsList = snap.val() || [];
+      renderQuestion();
+    });
+
+    sessionRef.child('customQuestions').on('value', snap => {
+      customQuestions = snap.val() || {};
+      renderPendingQuestionNote();
+      renderQuestion();
+    });
+
+    sessionRef.child('currentIndex').on('value', snap => {
+      currentIndex = snap.val() || 0;
+      answerInput.value = '';
+      renderQuestion();
+      renderPendingQuestionNote();
+    });
+
+    sessionRef.child('answers').on('value', () => {
+      // wir lesen answers pro Frage separat, siehe unten
+    });
+
+    // Antworten zur aktuellen Frage live beobachten
+    let answersRef = null;
+    function watchAnswersForCurrent(){
+      if(answersRef) answersRef.off();
+      answersRef = sessionRef.child('answers').child(String(currentIndex));
+      answersRef.on('value', snap => {
+        currentAnswers = snap.val() || {};
+        renderTiles();
+      });
+    }
+    sessionRef.child('currentIndex').on('value', () => watchAnswersForCurrent());
+    watchAnswersForCurrent();
+  }
+
+  function renderPartnerStatus(){
+    const others = Object.entries(players).filter(([id]) => id !== myId);
+    if(others.length === 0){
+      partnerStatus.textContent = 'Warte, bis noch jemand beitritt …';
+      partnerDot.classList.add('offline');
+    } else {
+      const otherName = others[0][1].name || 'Die andere Person';
+      partnerStatus.textContent = otherName + ' ist auch dabei ✓';
+      partnerDot.classList.remove('offline');
+    }
+  }
+
+  function renderQuestion(){
+    if(!questionsList || questionsList.length === 0){
+      noQuestionsMsg.classList.remove('hidden');
+      questionArea.classList.add('hidden');
+      return;
+    }
+    noQuestionsMsg.classList.add('hidden');
+    questionArea.classList.remove('hidden');
+
+    if(currentIndex >= questionsList.length){
+      finishedBox.classList.remove('hidden');
+      answerForm.classList.add('hidden');
+      tilesArea.classList.add('hidden');
+      nextBtnWrap.classList.add('hidden');
+      waitingNote.classList.add('hidden');
+      questionCounter.textContent = '';
+      questionText.textContent = '';
+      return;
+    }
+    finishedBox.classList.add('hidden');
+
+    questionCounter.textContent = 'Frage ' + (currentIndex + 1) + ' von ' + questionsList.length;
+
+    // Prüfen, ob für diese Runde eine eingereichte Frage dran ist
+    // (>= statt ===, damit eine evtl. verpasste Frage beim nächsten Zug nachgeholt wird statt verloren zu gehen)
+    let matchedKey = null;
+    let matchedQuestion = null;
+    Object.entries(customQuestions).forEach(([key, cq]) => {
+      if(cq && !cq.used && cq.revealAt <= currentIndex){
+        if(!matchedQuestion || cq.revealAt < matchedQuestion.revealAt){
+          matchedKey = key;
+          matchedQuestion = cq;
+        }
+      }
+    });
+
+    if(matchedQuestion){
+      questionText.textContent = matchedQuestion.text;
+      customQuestionTag.textContent = '💌 Frage von ' + (matchedQuestion.name || 'jemandem');
+      customQuestionTag.classList.remove('hidden');
+      sessionRef.child('customQuestions').child(matchedKey).update({ used: true });
+    } else {
+      questionText.textContent = questionsList[currentIndex];
+      customQuestionTag.classList.add('hidden');
+    }
+
+    renderTiles();
+  }
+
+  function renderPendingQuestionNote(){
+    const upcoming = Object.values(customQuestions).find(cq => cq && !cq.used && cq.revealAt > currentIndex);
+    if(upcoming){
+      pendingQuestionNote.textContent = '👀 ' + (upcoming.name || 'Jemand') + ' hat noch eine Frage eingereicht — sie taucht in einer der nächsten 3 Runden auf!';
+      pendingQuestionNote.classList.remove('hidden');
+    } else {
+      pendingQuestionNote.classList.add('hidden');
+    }
+  }
+
+  function renderTiles(){
+    if(!questionsList || questionsList.length === 0 || currentIndex >= questionsList.length) return;
+
+    const myAnswer = currentAnswers[myId];
+    const otherEntries = Object.entries(currentAnswers).filter(([id]) => id !== myId);
+
+    // Antwortformular ein-/ausblenden
+    if(myAnswer){
+      answerForm.classList.add('hidden');
+    } else {
+      answerForm.classList.remove('hidden');
+    }
+
+    const answeredCount = Object.keys(currentAnswers).length;
+    const totalPlayers = Math.max(Object.keys(players).length, 2);
+    const bothAnswered = answeredCount >= 2;
+
+    if(myAnswer && !bothAnswered){
+      waitingNote.classList.remove('hidden');
+    } else {
+      waitingNote.classList.add('hidden');
+    }
+
+    if(bothAnswered){
+      tilesArea.classList.remove('hidden');
+      tilesArea.innerHTML = '';
+
+      otherEntries.forEach(([id, answer]) => {
+        const pName = (players[id] && players[id].name) ? players[id].name : 'Andere Person';
+        tilesArea.appendChild(makeTile(pName, answer, 'other'));
+      });
+
+      if(myAnswer){
+        tilesArea.appendChild(makeTile('Du', myAnswer, 'mine'));
+      }
+
+      nextBtnWrap.classList.remove('hidden');
+      whatsappBtnWrap.classList.remove('hidden');
+    } else {
+      tilesArea.classList.add('hidden');
+      whatsappBtnWrap.classList.add('hidden');
+      nextBtnWrap.classList.add('hidden');
+    }
+  }
+
+  function makeTile(name, answer, cls){
+    const div = document.createElement('div');
+    div.className = 'tile ' + cls;
+    const label = document.createElement('div');
+    label.className = 'tile-name';
+    label.textContent = name;
+    const text = document.createElement('div');
+    text.className = 'tile-answer';
+    text.textContent = answer;
+    div.appendChild(label);
+    div.appendChild(text);
+    return div;
+  }
+
+  submitAnswerBtn.addEventListener('click', () => {
+    const text = answerInput.value.trim();
+    if(!text) return;
+    sessionRef.child('answers').child(String(currentIndex)).child(myId).set(text);
+  });
+
+  nextQuestionBtn.addEventListener('click', () => {
+    sessionRef.child('currentIndex').set(currentIndex + 1);
+  });
+
+  // ---------- Wahrheit oder Pflicht (lokales Spiel, kein Firebase nötig) ----------
+  const TRUTH_ROMANTIC = [
+    'Was war dein schönster Moment mit mir bisher?',
+    'Wann hast du gemerkt, dass ich dir wichtig bin?',
+    'Was ist eine Sache, die du an mir niemals ändern würdest?',
+    'Was macht mich für dich besonders?',
+    'Was ist deine Lieblings-Erinnerung von uns?',
+    'Was ist eine kleine Sache, die ich mache und die dich glücklich macht?',
+    'Was vermisst du am meisten, wenn wir nicht zusammen sind?',
+    'Was war dein erster Eindruck von mir?',
+    'Was glaubst du, worin sind wir als Paar besonders gut?',
+    'Was möchtest du unbedingt noch mit mir erleben?',
+    'Was ist ein Moment, in dem du dich bei mir besonders geborgen gefühlt hast?',
+    'Welche Eigenschaft von mir liebst du am meisten?',
+    'Was bringt dich bei mir immer zum Lächeln?',
+    'Welche gemeinsame Erinnerung würdest du gerne noch einmal erleben?',
+    'Was ist ein Ort, an den du gerne mit mir reisen würdest?',
+    'Was macht unsere Beziehung anders als andere?',
+    'Was ist ein Geheimnis über dich, das ich vielleicht noch nicht weiß?',
+    'Was möchtest du, dass ich öfter mache?',
+    'Welche drei Wörter beschreiben deine Gefühle für mich?',
+    'Was hoffst du, dass wir in vielen Jahren noch zusammen machen?',
+  ];
+
+  const TRUTH_BOLD = [
+    'Was findest du an mir körperlich am attraktivsten?',
+    'Was ist etwas, das dich sofort in eine romantische Stimmung bringt?',
+    'Wann fühlst du dich mir besonders nah?',
+    'Gibt es eine Fantasie, über die du schon einmal nachgedacht hast?',
+    'Was würdest du gerne einmal als Paar ausprobieren?',
+    'Was ist etwas, das du dich bisher nicht getraut hast anzusprechen?',
+    'Was macht für dich einen perfekten romantischen Abend aus?',
+    'Welche Art von Berührung findest du besonders schön?',
+    'Was ist eine Sache, die ich mache, die dich sofort glücklich macht?',
+    'Gibt es etwas, das du gerne öfter in unserer Beziehung hättest?',
+    'Was ist ein Wunsch, den du mir bisher noch nicht erzählt hast?',
+    'Gibt es eine Situation, in der du dich besonders begehrt oder geliebt gefühlt hast?',
+    'Was bedeutet für dich Vertrauen in einer Beziehung?',
+    'Welche Rolle spielt Fantasie für dich in einer Beziehung?',
+    'Gibt es etwas Neues, das du gerne gemeinsam entdecken würdest?',
+    'Was ist eine Grenze, die dir in einer Beziehung wichtig ist?',
+    'Was macht eine Situation für dich besonders aufregend oder spannend?',
+    'Gibt es eine romantische oder intime Erfahrung, die du gerne einmal erleben möchtest?',
+    'Was ist etwas, das du an unserer Nähe besonders magst?',
+    'Wenn du einen perfekten Moment nur für uns beide gestalten könntest – wie würde er aussehen?',
+  ];
+
+  const DARE_ROMANTIC = [
+    'Halte mich 60 Sekunden lang fest, ohne etwas zu sagen.',
+    'Tanze mit mir langsam für ein Lied.',
+    'Schau mir 2 Minuten in die Augen.',
+    'Erzähle mir, was du an mir am meisten schätzt.',
+    'Zeichne ein Bild von mir in 3 Minuten.',
+    'Mach ein Foto von uns, das eine schöne Erinnerung festhält.',
+    'Spiele unsere erste Begegnung nach.',
+    'Erfinde eine kleine Geschichte über unsere Zukunft.',
+    'Gib mir einen Spitznamen, den nur du benutzen darfst.',
+    'Schreib mir eine kurze Nachricht, die ich später lesen darf.',
+    'Such ein Lied aus, das zu uns passt, und erkläre warum.',
+    'Mach mir drei ehrliche Komplimente.',
+    'Beschreibe unseren perfekten gemeinsamen Tag.',
+    'Erzähle mir eine Erinnerung, die du nie vergessen möchtest.',
+    'Lass mich für eine Minute deine Augen schließen und überrasche mich mit einer Kleinigkeit.',
+    'Macht ein Selfie, das eure Stimmung gerade zeigt.',
+    'Sag mir etwas, das du an unserer Beziehung liebst.',
+    'Erfinde eine neue gemeinsame Tradition.',
+    'Gib mir eine lange Umarmung, bis einer von uns lachen muss.',
+    'Leg dich neben mich und wir reden 5 Minuten über irgendwas Schönes.',
+  ];
+
+  const DARE_BOLD = [
+    'Halte mich ganz nah bei dir und sage mir, was du gerade fühlst.',
+    'Lege deinen Kopf auf mich und bleibe eine Minute ganz ruhig.',
+    'Gib mir eine 5-Minuten-Kuschel-Challenge ohne Ablenkung.',
+    'Verbinde mir die Augen und überrasche mich mit einer lieben Geste.',
+    'Lass mich eine Sache bestimmen, die wir jetzt zusammen machen.',
+    'Halte meine Hand und erzähle mir etwas, was du selten aussprichst.',
+    'Gib mir eine Rücken- oder Schultermassage.',
+    'Streiche mir langsam durch die Haare.',
+    'Lege deine Hand auf meine und halte sie eine Minute fest.',
+    'Flüstere mir etwas Süßes ins Ohr.',
+    'Wir sitzen ganz nah beieinander und dürfen nicht lachen.',
+    'Beschreibe, was du an mir zuerst attraktiv fandest.',
+    'Gib mir zehn kleine Küsse (z. B. Wange, Stirn, Hand).',
+    'Lass mich dich für eine Minute einfach nur anschauen.',
+    'Umarme mich von hinten und halte mich fest.',
+    'Sage mir einen Wunsch, den du für unsere gemeinsame Zukunft hast.',
+    'Mach eine kleine Überraschung aus dem, was gerade im Hotelzimmer ist.',
+    'Wir liegen nebeneinander und erzählen uns abwechselnd eine Sache, die wir am anderen lieben.',
+    'Führe mich für eine Minute mit geschlossenen Augen (sicher im Zimmer).',
+    'Entscheide eine romantische Aufgabe für mich, die ich machen muss.',
+  ];
+
+  let wopMode = 'random';
+  let wopDifficulty = 'romantic';
+  let wopPlayerNames = ['Simon', 'Liz'];
+  let wopTurn = 0;
+
+  wopModeToggle.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wopModeToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      wopMode = btn.dataset.mode;
+    });
+  });
+
+  wopDifficultyToggle.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wopDifficultyToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      wopDifficulty = btn.dataset.difficulty;
+    });
+  });
+
+  wopSetupBackBtn.addEventListener('click', () => {
+    wopSetupScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
+  wopGameBackBtn.addEventListener('click', () => {
+    wopGameScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
+  wopStartBtn.addEventListener('click', () => {
+    const n1 = wopName1.value.trim() || wopName1.placeholder;
+    const n2 = wopName2.value.trim() || wopName2.placeholder;
+    wopPlayerNames = [n1, n2];
+    wopTurn = 0;
+
+    wopSetupScreen.classList.add('hidden');
+    wopGameScreen.classList.remove('hidden');
+    startWopTurn();
+  });
+
+  let wopTypeBag = [];
+  function drawWopType(){
+    if(wopTypeBag.length === 0){
+      wopTypeBag = shuffleArray(['truth', 'dare', 'truth', 'dare']);
+    }
+    return wopTypeBag.pop();
+  }
+
+  function startWopTurn(){
+    wopTurnLabel.textContent = wopPlayerNames[wopTurn] + ' ist dran';
+    wopChallengeArea.classList.add('hidden');
+
+    if(wopMode === 'random'){
+      wopChoiceArea.classList.add('hidden');
+      showWopChallenge(drawWopType());
+    } else {
+      wopChoiceArea.classList.remove('hidden');
+    }
+  }
+
+  function getWopPool(type){
+    if(type === 'truth'){
+      if(wopDifficulty === 'romantic') return TRUTH_ROMANTIC;
+      if(wopDifficulty === 'bold') return TRUTH_BOLD;
+      return TRUTH_ROMANTIC.concat(TRUTH_BOLD);
+    } else {
+      if(wopDifficulty === 'romantic') return DARE_ROMANTIC;
+      if(wopDifficulty === 'bold') return DARE_BOLD;
+      return DARE_ROMANTIC.concat(DARE_BOLD);
+    }
+  }
+
+  function typewriterEffect(el, text, speed){
+    speed = speed || 26;
+    el.textContent = '';
+    let i = 0;
+    const interval = setInterval(() => {
+      el.textContent += text.charAt(i);
+      i++;
+      if(i >= text.length) clearInterval(interval);
+    }, speed);
+  }
+
+  function showWopChallenge(type){
+    const pool = getWopPool(type);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+
+    wopChallengeTag.textContent = type === 'truth' ? '💬 Wahrheit' : '🎯 Pflicht';
+    typewriterEffect(wopChallengeText, pick);
+
+    wopChoiceArea.classList.add('hidden');
+    wopChallengeArea.classList.remove('hidden');
+  }
+
+  wopChooseTruthBtn.addEventListener('click', () => showWopChallenge('truth'));
+  wopChooseDareBtn.addEventListener('click', () => showWopChallenge('dare'));
+
+  wopNextTurnBtn.addEventListener('click', () => {
+    wopTurn = 1 - wopTurn;
+    startWopTurn();
+  });
+
+</script>
+</body>
+</html>
