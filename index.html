@@ -570,14 +570,14 @@
     <div id="starField"></div>
   </div>
 
-  <!-- ===================== EASTER-EGG-HILFE (nur Simon) ===================== -->
+  <!-- ===================== EASTER-EGG-HILFE (nur admin) ===================== -->
   <div id="easter-egg-modal" class="modal-backdrop hidden">
     <div class="modal">
       <h2>Versteckte Easter Eggs</h2>
       <p class="hint">Diese Wörter im Namensfeld lösen etwas Verstecktes aus:</p>
       <div style="max-height: 360px; overflow-y: auto;">
         <ul style="padding-left: 18px; margin: 0; line-height: 1.8; font-size: 0.92rem;">
-          <li><strong>Simon</strong> — schaltet die Einstellungen frei (Fragen bearbeiten, Reset, Export)</li>
+          <li><strong>admin</strong> — schaltet die Einstellungen frei (Fragen bearbeiten, Reset, Export)</li>
           <li><strong>Single / single</strong> — öffnet den Solo-Vorlese-Modus</li>
           <li><strong>Liz</strong> — Stern-Button oben rechts zum Sternenhimmel-Minispiel + süßer Spruch</li>
           <li><strong>Hey Daddy</strong> — „Na dann, Daddy 😏🔥"</li>
@@ -1083,11 +1083,11 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   function updateSettingsAccess(){
     const val = playerNameInput.value.trim();
     const lower = val.toLowerCase();
-    const isSimon = val === 'Simon';
+    const isAdmin = lower === 'admin';
     const isSingle = lower === 'single';
     const isLiz = lower === 'liz';
-    openSettingsBtn.classList.toggle('hidden', !isSimon);
-    openEasterEggHelpBtn.classList.toggle('hidden', !isSimon);
+    openSettingsBtn.classList.toggle('hidden', !isAdmin);
+    openEasterEggHelpBtn.classList.toggle('hidden', !isAdmin);
     soloModeBtn.classList.toggle('hidden', !isSingle);
     starTeaserBtn.classList.toggle('hidden', !isLiz);
   }
@@ -1507,7 +1507,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
     sessionRef.child('players').child(myId).set({ name: myName, lastSeen: Date.now() });
 
-    openSettingsBtnGame.classList.toggle('hidden', myName !== 'Simon');
+    openSettingsBtnGame.classList.toggle('hidden', myName.toLowerCase() !== 'admin');
 
     nameScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
