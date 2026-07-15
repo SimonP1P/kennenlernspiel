@@ -107,6 +107,10 @@
     padding: 13px 22px;
     cursor: pointer;
     transition: transform .12s ease, opacity .12s ease;
+    color: var(--ink);
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
   }
   button:active{ transform: scale(0.98); }
   button:disabled{ opacity: .5; cursor: not-allowed; }
@@ -191,20 +195,35 @@
     gap:14px;
     width:100%;
     text-align:left;
-    padding: 14px 16px;
+    padding: 15px 16px;
     border-radius: 14px;
     border: 1.5px solid var(--line);
-    background: var(--bg);
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(46,36,48,0.04);
     cursor: pointer;
     position: relative;
+    color: var(--ink);
+    transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
   }
-  .game-tile:hover{ border-color: var(--plum); }
+  .game-tile:hover{ border-color: var(--plum); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(107,78,113,0.12); }
   .game-tile.disabled{ opacity: 0.55; cursor: default; }
-  .game-tile.disabled:hover{ border-color: var(--line); }
-  .game-tile-emoji{ font-size: 1.6rem; flex-shrink:0; }
+  .game-tile.disabled:hover{ border-color: var(--line); transform:none; box-shadow: 0 2px 8px rgba(46,36,48,0.04); }
+  .game-tile-emoji{
+    font-size: 1.6rem;
+    flex-shrink:0;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--plum-soft);
+    display:flex; align-items:center; justify-content:center;
+  }
   .game-tile-text{ display:flex; flex-direction:column; gap:2px; }
-  .game-tile-title{ font-weight:700; font-size:0.95rem; }
-  .game-tile-desc{ font-size:0.78rem; color: var(--ink-muted); }
+  .game-tile-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--ink);
+  }
+  .game-tile-desc{ font-size:0.78rem; color: var(--ink-muted); font-family: 'Inter', sans-serif; }
   .soon-badge{
     position:absolute;
     top:10px; right:12px;
@@ -216,6 +235,31 @@
     letter-spacing:0.04em;
     padding:3px 8px;
     border-radius:999px;
+  }
+
+  /* Date-Ideen-Drehrad */
+  .wheel-wrap{
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 10px auto 0;
+  }
+  .wheel-pointer{
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    color: var(--plum);
+    z-index: 5;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+  }
+  .wheel-disc{
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 6px solid var(--surface);
+    box-shadow: 0 8px 30px rgba(46,36,48,0.25);
+    transition: transform 4s cubic-bezier(.17,.67,.16,.99);
   }
 
   /* Game screen */
@@ -487,9 +531,12 @@
       </div>
     </div>
 
-    <div class="status-line" id="hubPresenceLine">
-      <span class="dot offline" id="hubPresenceDot"></span>
-      <span id="hubPresenceText">Noch niemand sonst online</span>
+    <div class="status-line" id="hubPresenceLine" style="justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="dot offline" id="hubPresenceDot"></span>
+        <span id="hubPresenceText">Noch niemand sonst online</span>
+      </div>
+      <button id="changeNameLink" style="background:none; border:none; padding:0; color:var(--ink-muted); font-size:0.78rem; text-decoration:underline; cursor:pointer;">Name ändern</button>
     </div>
 
     <div class="card" style="margin-bottom:16px;">
@@ -509,21 +556,19 @@
             <span class="game-tile-desc">Fragen der Reihe nach vorlesen</span>
           </span>
         </button>
-        <button class="game-tile disabled" id="tileWheel">
+        <button class="game-tile" id="tileWheel">
           <span class="game-tile-emoji">🎡</span>
           <span class="game-tile-text">
             <span class="game-tile-title">Date-Ideen-Drehrad</span>
-            <span class="game-tile-desc">Bald verfügbar</span>
+            <span class="game-tile-desc">Wizard + Glücksrad für den nächsten Abend</span>
           </span>
-          <span class="soon-badge">bald</span>
         </button>
-        <button class="game-tile disabled" id="tileRoleplay">
+        <button class="game-tile" id="tileRoleplay">
           <span class="game-tile-emoji">🎭</span>
           <span class="game-tile-text">
             <span class="game-tile-title">Rollenspiel-Icebreaker</span>
-            <span class="game-tile-desc">Bald verfügbar</span>
+            <span class="game-tile-desc">Zufällige Szenarien zum Nachspielen</span>
           </span>
-          <span class="soon-badge">bald</span>
         </button>
       </div>
     </div>
@@ -538,21 +583,19 @@
             <span class="game-tile-desc">Fragen beantworten & vergleichen</span>
           </span>
         </button>
-        <button class="game-tile disabled" id="tileNeverHaveIEver">
+        <button class="game-tile" id="tileNeverHaveIEver">
           <span class="game-tile-emoji">🙅</span>
           <span class="game-tile-text">
             <span class="game-tile-title">Nie habe ich je …</span>
-            <span class="game-tile-desc">Bald verfügbar</span>
+            <span class="game-tile-desc">Aussagen: hab ich / hab ich nicht</span>
           </span>
-          <span class="soon-badge">bald</span>
         </button>
-        <button class="game-tile disabled" id="tileGuessAnswer">
+        <button class="game-tile" id="tileGuessAnswer">
           <span class="game-tile-emoji">🔮</span>
           <span class="game-tile-text">
             <span class="game-tile-title">Rate meine Antwort</span>
-            <span class="game-tile-desc">Bald verfügbar</span>
+            <span class="game-tile-desc">Erst raten, dann vergleichen</span>
           </span>
-          <span class="soon-badge">bald</span>
         </button>
       </div>
     </div>
@@ -652,6 +695,163 @@
         <div class="question-eyebrow" id="wopChallengeTag">💬 Wahrheit</div>
         <p class="question-text" id="wopChallengeText">—</p>
         <button class="btn-primary" id="wopNextTurnBtn">Nächste Runde →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DATE-IDEEN-DREHRAD: WIZARD ===================== -->
+  <div id="wheel-wizard-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Date-Ideen-<em>Drehrad</em></h1>
+        <p class="subtitle" id="wizardStepLabel">Schritt 1 von 4</p>
+      </div>
+      <button class="gear-btn" id="wheelWizardBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card">
+      <div id="wizardStepLoc">
+        <label style="margin-bottom:12px;">📍 Wo habt ihr Lust drauf?</label>
+        <div class="toggle-row wizard-options" data-key="loc">
+          <button type="button" class="toggle-btn" data-value="home">🏠 Zuhause</button>
+          <button type="button" class="toggle-btn" data-value="out">🌳 Draußen</button>
+          <button type="button" class="toggle-btn" data-value="any">🤷 Egal</button>
+        </div>
+      </div>
+      <div class="hidden" id="wizardStepTime">
+        <label style="margin-bottom:12px; margin-top:20px;">⏱️ Wie viel Zeit habt ihr?</label>
+        <div class="toggle-row wizard-options" data-key="time">
+          <button type="button" class="toggle-btn" data-value="short">Kurz (unter 1 Std.)</button>
+          <button type="button" class="toggle-btn" data-value="afternoon">Ein Nachmittag</button>
+          <button type="button" class="toggle-btn" data-value="full">Ein ganzer Tag/Abend</button>
+          <button type="button" class="toggle-btn" data-value="any">🤷 Egal</button>
+        </div>
+      </div>
+      <div class="hidden" id="wizardStepBudget">
+        <label style="margin-bottom:12px; margin-top:20px;">💰 Budget?</label>
+        <div class="toggle-row wizard-options" data-key="budget">
+          <button type="button" class="toggle-btn" data-value="free">Kostenlos</button>
+          <button type="button" class="toggle-btn" data-value="low">Günstig</button>
+          <button type="button" class="toggle-btn" data-value="spend">Darf was kosten</button>
+          <button type="button" class="toggle-btn" data-value="any">🤷 Egal</button>
+        </div>
+      </div>
+      <div class="hidden" id="wizardStepMood">
+        <label style="margin-bottom:12px; margin-top:20px;">✨ Stimmung?</label>
+        <div class="toggle-row wizard-options" data-key="mood">
+          <button type="button" class="toggle-btn" data-value="chill">😌 Entspannt</button>
+          <button type="button" class="toggle-btn" data-value="active">⚡ Aktiv</button>
+          <button type="button" class="toggle-btn" data-value="romantic">💕 Romantisch</button>
+          <button type="button" class="toggle-btn" data-value="creative">🎨 Kreativ</button>
+          <button type="button" class="toggle-btn" data-value="any">🤷 Egal</button>
+        </div>
+      </div>
+      <button class="btn-primary" id="wizardNextBtn" style="margin-top:24px;" disabled>Weiter →</button>
+    </div>
+  </div>
+
+  <!-- ===================== DATE-IDEEN-DREHRAD: RAD ===================== -->
+  <div id="wheel-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Dreh das <em>Rad</em></h1>
+        <p class="subtitle" id="wheelPoolInfo">— Ideen im Topf</p>
+      </div>
+      <button class="gear-btn" id="wheelBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="wheel-wrap">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel-disc" id="wheelDisc"></div>
+      </div>
+      <button class="btn-primary" id="spinWheelBtn" style="margin-top:22px;">🎡 Rad drehen</button>
+      <div class="hidden" id="wheelResultBox">
+        <p class="question-eyebrow" style="margin-top:22px;">Eure Idee</p>
+        <p class="question-text" id="wheelResultText">—</p>
+        <div class="modal-actions">
+          <button class="btn-ghost" id="wheelRedrawBtn" style="flex:1;">🔁 Andere Idee</button>
+          <button class="btn-ghost" id="wheelRestartBtn" style="flex:1;">⚙️ Neu einstellen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ROLLENSPIEL-ICEBREAKER ===================== -->
+  <div id="roleplay-screen" class="screen hidden">
+    <div class="top-row">
+      <div>
+        <h1 class="title">Rollenspiel-<em>Icebreaker</em></h1>
+        <p class="subtitle" id="roleplayCategoryLabel">Zufällige Szenarien</p>
+      </div>
+      <button class="gear-btn" id="roleplayBackBtn" title="Zurück">←</button>
+    </div>
+    <div class="card">
+      <div class="toggle-row" id="roleplayCategoryToggle" style="margin-bottom:20px;">
+        <button type="button" class="toggle-btn active" data-cat="all">Alle</button>
+        <button type="button" class="toggle-btn" data-cat="Romantisch">❤️ Romantisch</button>
+        <button type="button" class="toggle-btn" data-cat="Lustig">😂 Lustig</button>
+        <button type="button" class="toggle-btn" data-cat="Fantasievoll">🪄 Fantasie</button>
+      </div>
+      <div class="question-eyebrow" id="roleplayTag">Szenario</div>
+      <p class="question-text" id="roleplayText">—</p>
+      <button class="btn-primary" id="roleplayNextBtn">Nächstes Szenario →</button>
+    </div>
+  </div>
+
+  <!-- ===================== NIE HABE ICH JE ===================== -->
+  <div id="nhie-screen" class="screen hidden">
+    <div class="status-line" style="justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="gear-btn" id="nhieBackBtn" title="Zurück" style="width:34px; height:34px; font-size:0.95rem;">←</button>
+        <span class="dot" id="nhiePartnerDot"></span>
+        <span id="nhiePartnerStatus">Warte, bis noch jemand online ist …</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="question-eyebrow" id="nhieCounter">Aussage 1</div>
+      <p class="question-text" id="nhieStatementText">—</p>
+
+      <div id="nhieAnswerArea">
+        <div class="modal-actions">
+          <button class="btn-ghost" id="nhieHabIchBtn" style="flex:1;">🙋 Hab ich</button>
+          <button class="btn-primary" id="nhieHabIchNichtBtn" style="flex:1; margin-top:0;">🙅 Hab ich nicht</button>
+        </div>
+      </div>
+
+      <p class="waiting-note hidden" id="nhieWaitingNote">Deine Antwort ist gespeichert. Warte auf die zweite Antwort …</p>
+
+      <div class="tiles hidden" id="nhieTilesArea"></div>
+
+      <div class="next-btn-wrap hidden" id="nhieNextBtnWrap">
+        <button class="btn-primary" id="nhieNextBtn" style="margin-top:0;">Nächste Aussage →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== RATE MEINE ANTWORT ===================== -->
+  <div id="guess-screen" class="screen hidden">
+    <div class="status-line" style="justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="gear-btn" id="guessBackBtn" title="Zurück" style="width:34px; height:34px; font-size:0.95rem;">←</button>
+        <span class="dot" id="guessPartnerDot"></span>
+        <span id="guessPartnerStatus">Warte, bis noch jemand online ist …</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="question-eyebrow" id="guessRoleLabel">Deine Rolle: —</div>
+      <p class="question-text" id="guessQuestionText">—</p>
+
+      <div id="guessAnswerForm">
+        <label for="guessInput" id="guessInputLabel">Deine Antwort</label>
+        <textarea id="guessInput" placeholder="Schreib deine Antwort bzw. deinen Tipp …"></textarea>
+        <button class="btn-primary" id="guessSubmitBtn">Abschicken</button>
+      </div>
+
+      <p class="waiting-note hidden" id="guessWaitingNote">Gespeichert. Warte auf die zweite Eingabe …</p>
+
+      <div class="tiles hidden" id="guessTilesArea"></div>
+
+      <div class="next-btn-wrap hidden" id="guessNextBtnWrap">
+        <button class="btn-primary" id="guessNextBtn" style="margin-top:0;">Nächste Runde (Rollen tauschen) →</button>
       </div>
     </div>
   </div>
@@ -873,10 +1073,10 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
       <div style="margin-top:28px; padding-top:22px; border-top:1px solid var(--line);">
         <h2 style="font-size:1.05rem;">Neues Spiel starten</h2>
         <p class="hint">
-          Entfernt alle aktuell beigetretenen Spieler und setzt das Spiel auf Frage 1 zurück.
-          Eure Fragenliste bleibt dabei erhalten. Nützlich, wenn sich aus Versehen zu viele Geräte eingetragen haben.
+          Setzt Antworten, Reactions und eingereichte Fragen zurück und beginnt wieder bei Frage 1.
+          Eure Fragenliste bleibt dabei erhalten. Wer online ist, wird zentral über den Hub geregelt und bleibt davon unberührt.
         </p>
-        <button class="btn-ghost" id="resetGameBtn" style="width:100%; border-color:#B24040; color:#B24040;">Alle Spieler entfernen &amp; neu starten</button>
+        <button class="btn-ghost" id="resetGameBtn" style="width:100%; border-color:#B24040; color:#B24040;">Fortschritt zurücksetzen &amp; neu starten</button>
       </div>
 
       <div style="margin-top:24px; padding-top:22px; border-top:1px solid var(--line);">
@@ -885,6 +1085,15 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
           Lädt alle bisher verschickten Kurznachrichten als Textdatei herunter. Im Spiel selbst wird der Verlauf nirgends angezeigt — nur hier.
         </p>
         <button class="btn-ghost" id="exportChatBtn" style="width:100%;">Nachrichten als .txt herunterladen</button>
+      </div>
+
+      <div style="margin-top:24px; padding-top:22px; border-top:1px solid var(--line);">
+        <h2 style="font-size:1.05rem;">Online-Status zurücksetzen</h2>
+        <p class="hint">
+          Falls irgendwo eine „online"-Anzeige hängen bleibt, obwohl niemand mehr da ist: Setzt die komplette
+          Online-Liste zurück. Aktive Geräte melden sich danach innerhalb weniger Sekunden von selbst wieder an.
+        </p>
+        <button class="btn-ghost" id="resetPresenceBtn" style="width:100%;">Online-Status komplett zurücksetzen</button>
       </div>
     </div>
   </div>
@@ -1004,6 +1213,8 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   const questionsInput = document.getElementById('questionsInput');
   const resetGameBtn = document.getElementById('resetGameBtn');
   const exportChatBtn = document.getElementById('exportChatBtn');
+  const resetPresenceBtn = document.getElementById('resetPresenceBtn');
+  const changeNameLink = document.getElementById('changeNameLink');
 
   const partnerStatus = document.getElementById('partnerStatus');
   const partnerDot = document.getElementById('partnerDot');
@@ -1080,7 +1291,6 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   // ---------- lokaler Zustand ----------
   let myName = localStorage.getItem('zweiAntworten_playerName') || '';
   let questionsList = [];
-  let players = {};
   let currentIndex = 0;
   let currentAnswers = {};
   let customQuestions = {};
@@ -1187,10 +1397,9 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
 
   resetGameBtn.addEventListener('click', () => {
-    const ok = confirm('Wirklich alle Spieler entfernen und bei Frage 1 neu anfangen? Eure Fragenliste bleibt erhalten.');
+    const ok = confirm('Wirklich Antworten & Fortschritt zurücksetzen und bei Frage 1 neu anfangen? Eure Fragenliste bleibt erhalten.');
     if(!ok) return;
 
-    sessionRef.child('players').remove();
     sessionRef.child('answers').remove();
     sessionRef.child('currentIndex').set(0);
     sessionRef.child('reactions').remove();
@@ -1419,11 +1628,28 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     });
   });
 
+  resetPresenceBtn.addEventListener('click', () => {
+    const ok = confirm('Online-Status wirklich für alle zurücksetzen? Aktive Geräte melden sich sofort wieder an.');
+    if(!ok) return;
+    db.ref('presence').remove().then(() => {
+      // eigenes Gerät meldet sich direkt wieder an
+      presenceRef.update({ name: myName, online: true, ts: Date.now() });
+    });
+  });
+
+  changeNameLink.addEventListener('click', () => {
+    hubScreen.classList.add('hidden');
+    nameScreen.classList.remove('hidden');
+  });
+
   // ---------- Presence-System (wer ist gerade online?) ----------
   const presenceRef = db.ref('presence/' + myId);
   let presenceState = {};
 
   function setupPresence(){
+    if(setupPresence.done) return;
+    setupPresence.done = true;
+
     const connectedRef = db.ref('.info/connected');
     connectedRef.on('value', snap => {
       if(snap.val() === true){
@@ -1435,6 +1661,8 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     db.ref('presence').on('value', snap => {
       presenceState = snap.val() || {};
       renderHubPresence();
+      renderPartnerStatus();
+      renderTiles();
     });
   }
 
@@ -1478,6 +1706,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     hubGreeting.textContent = 'Hey ' + myName + '! Wähl ein Spiel:';
 
     setupPresence();
+    presenceRef.update({ name: myName, online: true, ts: Date.now() });
 
     nameScreen.classList.add('hidden');
     hubScreen.classList.remove('hidden');
@@ -1485,7 +1714,6 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
   // ---------- Kennenlernspiel über Hub-Kachel öffnen ----------
   function openKennenlernspiel(){
-    sessionRef.child('players').child(myId).set({ name: myName, lastSeen: Date.now() });
     hubScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     attachListeners();
@@ -1512,12 +1740,6 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
 
     const chatListenerStartTs = Date.now();
     const reactionListenerStartTs = Date.now();
-
-    sessionRef.child('players').on('value', snap => {
-      players = snap.val() || {};
-      renderPartnerStatus();
-      renderTiles();
-    });
 
     sessionRef.child('chat').on('child_added', snap => {
       const msg = snap.val() || {};
@@ -1572,13 +1794,13 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   }
 
   function renderPartnerStatus(){
-    const others = Object.entries(players).filter(([id]) => id !== myId);
+    const others = Object.entries(presenceState).filter(([id, p]) => id !== myId && p && p.online);
     if(others.length === 0){
-      partnerStatus.textContent = 'Warte, bis noch jemand beitritt …';
+      partnerStatus.textContent = 'Warte, bis noch jemand online ist …';
       partnerDot.classList.add('offline');
     } else {
       const otherName = others[0][1].name || 'Die andere Person';
-      partnerStatus.textContent = otherName + ' ist auch dabei ✓';
+      partnerStatus.textContent = otherName + ' ist online ✓';
       partnerDot.classList.remove('offline');
     }
   }
@@ -1656,7 +1878,6 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
     }
 
     const answeredCount = Object.keys(currentAnswers).length;
-    const totalPlayers = Math.max(Object.keys(players).length, 2);
     const bothAnswered = answeredCount >= 2;
 
     if(myAnswer && !bothAnswered){
@@ -1670,7 +1891,7 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
       tilesArea.innerHTML = '';
 
       otherEntries.forEach(([id, answer]) => {
-        const pName = (players[id] && players[id].name) ? players[id].name : 'Andere Person';
+        const pName = (presenceState[id] && presenceState[id].name) ? presenceState[id].name : 'Andere Person';
         tilesArea.appendChild(makeTile(pName, answer, 'other'));
       });
 
@@ -1903,9 +2124,748 @@ Welche Frage würdest du mir stellen, wenn du wüsstest, dass ich ehrlich antwor
   wopChooseTruthBtn.addEventListener('click', () => showWopChallenge('truth'));
   wopChooseDareBtn.addEventListener('click', () => showWopChallenge('dare'));
 
+
   wopNextTurnBtn.addEventListener('click', () => {
     wopTurn = 1 - wopTurn;
     startWopTurn();
+  });
+
+  // ================================================================
+  // NEUE SPIELE: Daten
+  // ================================================================
+  const DATE_IDEAS = [
+    { text: 'Gemeinsam ein neues Rezept ausprobieren und kochen', loc: 'home', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Filmabend mit Decken-Fort im Wohnzimmer bauen', loc: 'home', budget: 'free', time: 'short', mood: 'chill' },
+    { text: 'Zusammen backen und die Ergebnisse verkosten', loc: 'home', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Ein Puzzle mit über 1000 Teilen starten', loc: 'home', budget: 'low', time: 'full', mood: 'chill' },
+    { text: 'Massage-Abend füreinander mit Kerzenlicht', loc: 'home', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Gemeinsames Bad mit Kerzen und Musik', loc: 'home', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Ein Brettspiel-Turnier mit Punktesystem veranstalten', loc: 'home', budget: 'free', time: 'afternoon', mood: 'active' },
+    { text: 'Zusammen ein Möbelstück upcyceln oder streichen', loc: 'home', budget: 'low', time: 'full', mood: 'creative' },
+    { text: 'Ein Fotoalbum von euch beiden gestalten', loc: 'home', budget: 'low', time: 'afternoon', mood: 'creative' },
+    { text: 'Wein- oder Cocktailverkostung mit Blindtest', loc: 'home', budget: 'spend', time: 'short', mood: 'romantic' },
+    { text: 'Selbstgemachte Pizza mit eigenen Kreationen', loc: 'home', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Ein Escape-Room-Rätsel für zuhause selbst bauen', loc: 'home', budget: 'free', time: 'afternoon', mood: 'active' },
+    { text: 'Yoga oder Stretching zusammen zuhause machen', loc: 'home', budget: 'free', time: 'short', mood: 'chill' },
+    { text: 'Ein Liebesbrief-Austausch, den ihr euch laut vorlest', loc: 'home', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Karaoke-Abend mit Handy-App', loc: 'home', budget: 'free', time: 'short', mood: 'active' },
+    { text: 'Gemeinsam ein Gericht aus eurem Urlaubsland nachkochen', loc: 'home', budget: 'low', time: 'afternoon', mood: 'creative' },
+    { text: 'Tanzstunde per Video lernen', loc: 'home', budget: 'free', time: 'short', mood: 'active' },
+    { text: 'Ein Kissenbett im Wohnzimmer bauen und eine Doku schauen', loc: 'home', budget: 'free', time: 'short', mood: 'chill' },
+    { text: 'Zusammen ein Zimmer neu dekorieren', loc: 'home', budget: 'low', time: 'full', mood: 'creative' },
+    { text: 'Ein Candle-Light-Dinner selbst kochen', loc: 'home', budget: 'low', time: 'short', mood: 'romantic' },
+    { text: 'Sonnenaufgang oder Sonnenuntergang an einem schönen Ort anschauen', loc: 'out', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Picknick im Park mit selbstgemachten Snacks', loc: 'out', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Wanderung zu einem Aussichtspunkt in der Nähe', loc: 'out', budget: 'free', time: 'full', mood: 'active' },
+    { text: 'Fahrradtour zu einem unbekannten Ort in eurer Stadt', loc: 'out', budget: 'free', time: 'afternoon', mood: 'active' },
+    { text: 'Ein Straßenfest oder Flohmarkt gemeinsam erkunden', loc: 'out', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Sternenhimmel beobachten fernab von Lichtern', loc: 'out', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Minigolf spielen und eine Mini-Wette abschließen', loc: 'out', budget: 'low', time: 'short', mood: 'active' },
+    { text: 'Ein neues Café oder Restaurant in eurer Stadt ausprobieren', loc: 'out', budget: 'low', time: 'short', mood: 'chill' },
+    { text: 'Zusammen Kanu oder Tretboot fahren', loc: 'out', budget: 'spend', time: 'afternoon', mood: 'active' },
+    { text: 'Ein Konzert oder Open-Air-Kino besuchen', loc: 'out', budget: 'spend', time: 'full', mood: 'romantic' },
+    { text: 'Bowling-Abend mit Verlierer-Aufgabe', loc: 'out', budget: 'low', time: 'short', mood: 'active' },
+    { text: 'Ein Museum oder eine Ausstellung besuchen', loc: 'out', budget: 'low', time: 'afternoon', mood: 'chill' },
+    { text: 'Ein Tagesausflug in die nächste größere Stadt', loc: 'out', budget: 'spend', time: 'full', mood: 'active' },
+    { text: 'Klettern oder Bouldern zusammen ausprobieren', loc: 'out', budget: 'spend', time: 'afternoon', mood: 'active' },
+    { text: 'Ein Spaziergang durch ein unbekanntes Viertel mit Foto-Challenge', loc: 'out', budget: 'free', time: 'short', mood: 'creative' },
+    { text: 'Eisessen und ein Spaziergang am Wasser', loc: 'out', budget: 'low', time: 'short', mood: 'romantic' },
+    { text: 'Zusammen zu einem Tierpark oder Aquarium gehen', loc: 'out', budget: 'spend', time: 'afternoon', mood: 'chill' },
+    { text: 'Geocaching in eurer Umgebung ausprobieren', loc: 'out', budget: 'free', time: 'afternoon', mood: 'active' },
+    { text: 'Ein Wochenendtrip in eine nahe gelegene Stadt', loc: 'out', budget: 'spend', time: 'full', mood: 'romantic' },
+    { text: 'Kletterpark oder Hochseilgarten zusammen meistern', loc: 'out', budget: 'spend', time: 'full', mood: 'active' },
+    { text: 'Ein Fotoshooting füreinander machen, drinnen oder draußen', loc: 'both', budget: 'free', time: 'short', mood: 'creative' },
+    { text: 'Zusammen einen Kochkurs online oder vor Ort machen', loc: 'both', budget: 'low', time: 'afternoon', mood: 'creative' },
+    { text: 'Eine Schnitzeljagd füreinander in der Wohnung oder im Viertel vorbereiten', loc: 'both', budget: 'free', time: 'afternoon', mood: 'romantic' },
+    { text: 'Ein gemeinsames DIY-Projekt starten, z. B. Kerzen gießen', loc: 'both', budget: 'low', time: 'afternoon', mood: 'creative' },
+    { text: 'Zusammen eine neue Serie anfangen mit Snack-Buffet', loc: 'home', budget: 'low', time: 'short', mood: 'chill' },
+    { text: 'Tagesausflug ohne festen Plan, einfach der Nase nach', loc: 'out', budget: 'low', time: 'full', mood: 'active' },
+    { text: 'Ein Themen-Abend planen, z. B. Italien-Nacht mit Essen, Musik, Film', loc: 'home', budget: 'low', time: 'full', mood: 'romantic' },
+    { text: 'Zusammen ein neues Hobby ausprobieren, das keiner von euch kann', loc: 'both', budget: 'spend', time: 'afternoon', mood: 'creative' },
+    { text: 'Spieleabend mit Freunden organisieren', loc: 'home', budget: 'low', time: 'full', mood: 'active' },
+    { text: 'Ein Zeitkapsel-Projekt starten, das ihr in 5 Jahren öffnet', loc: 'home', budget: 'free', time: 'short', mood: 'romantic' },
+    { text: 'Ein romantisches Bad mit Massageöl und Musik', loc: 'home', budget: 'low', time: 'short', mood: 'romantic' },
+    { text: 'Gemeinsam meditieren oder eine Atemübung ausprobieren', loc: 'both', budget: 'free', time: 'short', mood: 'chill' },
+    { text: 'Ein Kurztrip mit dem Zug ohne Ziel, einfach aussteigen wo\'s schön aussieht', loc: 'out', budget: 'spend', time: 'full', mood: 'active' },
+    { text: 'Ein Liebes-Quiz übereinander erstellen und gegenseitig testen', loc: 'home', budget: 'free', time: 'short', mood: 'creative' },
+    { text: 'Zusammen einen Baum oder eine Pflanze pflanzen, die für eure Beziehung steht', loc: 'out', budget: 'low', time: 'short', mood: 'romantic' },
+    { text: 'Ein Lagerfeuer oder Balkon-Feuerkorb mit Marshmallows', loc: 'out', budget: 'low', time: 'short', mood: 'romantic' },
+    { text: 'Ein Retro-Spieleabend mit alten Konsolen oder Kartenspielen', loc: 'home', budget: 'free', time: 'afternoon', mood: 'active' },
+    { text: 'Zusammen ein Bild malen, jeder eine Hälfte, dann zusammenfügen', loc: 'home', budget: 'low', time: 'afternoon', mood: 'creative' },
+    { text: 'Ein spontaner Roadtrip ohne Navigationsgerät, nur nach Gefühl', loc: 'out', budget: 'spend', time: 'full', mood: 'active' },
+    { text: 'Eine Liste mit 10 Dingen erstellen, die ihr in den nächsten 12 Monaten zusammen erleben wollt', loc: 'home', budget: 'free', time: 'short', mood: 'romantic' },
+  ];
+
+  const ROLEPLAY_SCENARIOS = [
+    { cat: 'Romantisch', text: 'Tut so, als wäre es euer allererstes Date – stellt euch einander neu vor.' },
+    { cat: 'Romantisch', text: 'Spielt die Szene nach, in der einer von euch um die Hand des anderen anhält.' },
+    { cat: 'Romantisch', text: 'Tut so, als würdet ihr euch nach 10 Jahren Trennung zufällig wiedersehen.' },
+    { cat: 'Romantisch', text: 'Schreibt euch gegenseitig einen Liebesbrief und lest ihn wie Schauspieler in einem Film vor.' },
+    { cat: 'Romantisch', text: 'Spielt die Szene, in der ihr euch zum ersten Mal "ich liebe dich" sagt.' },
+    { cat: 'Romantisch', text: 'Tut so, als wärt ihr ein Ehepaar, das sich seit 50 Jahren liebt.' },
+    { cat: 'Romantisch', text: 'Stellt euch vor, ihr trefft euch zufällig im Ausland und müsst euch auf Englisch verständigen.' },
+    { cat: 'Romantisch', text: 'Spielt nach, wie euer erster Kuss hätte sein können, wenn er aus einem Kinofilm wäre.' },
+    { cat: 'Romantisch', text: 'Tut so, als würdet ihr euch nach einem großen Streit wieder versöhnen.' },
+    { cat: 'Romantisch', text: 'Lest euch eine möglichst kitschige Hollywood-Liebeserklärung vor.' },
+    { cat: 'Romantisch', text: 'Spielt eine Szene, in der einer den anderen nach einer langen Reise am Flughafen abholt.' },
+    { cat: 'Romantisch', text: 'Tut so, als wäre einer von euch ein Filmstar und der andere ein aufgeregter Fan beim ersten Treffen.' },
+    { cat: 'Romantisch', text: 'Spielt nach, wie ihr euch euren ersten gemeinsamen gemeinsamen Urlaub vorstellt, bevor er passiert.' },
+    { cat: 'Romantisch', text: 'Stellt eine Verlobungsszene nach eurem absoluten Traumszenario nach.' },
+    { cat: 'Romantisch', text: 'Schreibt gemeinsam die letzten Zeilen einer Liebesgeschichte und lest sie euch vor.' },
+    { cat: 'Lustig', text: 'Spielt eine Szene aus einer schlechten Seifenoper nach – möglichst übertrieben.' },
+    { cat: 'Lustig', text: 'Tut so, als wärt ihr zwei Spione, die sich zufällig in einem Café treffen.' },
+    { cat: 'Lustig', text: 'Einer spielt einen Kellner, der andere einen extrem wählerischen Gast.' },
+    { cat: 'Lustig', text: 'Spielt eine Verkaufsszene, in der einer dem anderen einen völlig nutzlosen Gegenstand andrehen will.' },
+    { cat: 'Lustig', text: 'Tut so, als wärt ihr Roboter, die gerade lernen, wie man flirtet.' },
+    { cat: 'Lustig', text: 'Spielt ein Bewerbungsgespräch, bei dem der Job "Partner fürs Leben" ist.' },
+    { cat: 'Lustig', text: 'Stellt eine Szene aus eurem Lieblingsfilm nach, aber mit vertauschten Rollen.' },
+    { cat: 'Lustig', text: 'Tut so, als wärt ihr zwei Promis auf dem roten Teppich und interviewt euch gegenseitig.' },
+    { cat: 'Lustig', text: 'Spielt eine möglichst übertriebene, dramatische Abschiedsszene.' },
+    { cat: 'Lustig', text: 'Einer ist Nachrichtensprecher, der andere berichtet "live" aus eurem Wohnzimmer.' },
+    { cat: 'Lustig', text: 'Tut so, als wärt ihr zwei Nachbarn, die sich seit Jahren um einen Gartenzaun streiten.' },
+    { cat: 'Lustig', text: 'Spielt eine Szene, in der einer von euch versucht, dem anderen ein Auto zu verkaufen.' },
+    { cat: 'Lustig', text: 'Tut so, als wärt ihr Gäste in einer Kochshow und müsst euer schlechtestes Gericht anpreisen.' },
+    { cat: 'Lustig', text: 'Spielt ein Interview, bei dem einer von euch ein exzentrischer Popstar ist.' },
+    { cat: 'Lustig', text: 'Tut so, als hättet ihr euch beide im selben Moment beim Feuerwehr-Casting beworben.' },
+    { cat: 'Lustig', text: 'Spielt eine übertriebene Reality-TV-Szene, in der ihr eine "Villa" besichtigt.' },
+    { cat: 'Fantasievoll', text: 'Tut so, als wärt ihr zwei Piraten, die gerade einen Schatz gefunden haben.' },
+    { cat: 'Fantasievoll', text: 'Spielt zwei Zeitreisende, die sich zum ersten Mal im Mittelalter begegnen.' },
+    { cat: 'Fantasievoll', text: 'Stellt euch vor, ihr seid Superhelden, die sich gerade ihre Geheimidentität gestehen.' },
+    { cat: 'Fantasievoll', text: 'Tut so, als wärt ihr zwei Astronauten auf dem Mars, die den letzten Proviant teilen müssen.' },
+    { cat: 'Fantasievoll', text: 'Spielt eine Szene aus einem Fantasy-Königreich, in dem einer von euch König oder Königin ist.' },
+    { cat: 'Fantasievoll', text: 'Tut so, als wärt ihr zwei Detektive, die gemeinsam einen kniffligen Fall lösen müssen.' },
+    { cat: 'Fantasievoll', text: 'Stellt euch vor, ihr seid Elfen, die sich zum ersten Mal in einem verzauberten Wald begegnen.' },
+    { cat: 'Fantasievoll', text: 'Spielt zwei Weltraum-Handelspartner, die um den besten Deal feilschen.' },
+    { cat: 'Fantasievoll', text: 'Tut so, als wärt ihr die letzten zwei Menschen auf der Erde nach einer Zombie-Apokalypse.' },
+    { cat: 'Fantasievoll', text: 'Spielt zwei Zauberer, die sich gegenseitig ihre mächtigsten Zaubersprüche beibringen.' },
+  ];
+
+  const NHIE_STATEMENTS = [
+    'Ich habe noch nie im Kino während des Films eingeschlafen.',
+    'Ich habe noch nie beim Autofahren laut mitgesungen, während jemand danebensaß.',
+    'Ich habe noch nie ein Lebensmittel gegessen, das schon abgelaufen war, ohne es zu merken.',
+    'Ich habe noch nie mit vollem Mund gesprochen und dabei etwas verschüttet.',
+    'Ich habe noch nie eine WhatsApp-Nachricht abgeschickt und sie sofort bereut.',
+    'Ich habe noch nie in der Öffentlichkeit laut gelacht, ohne zu wissen warum.',
+    'Ich habe noch nie ein Wort komplett falsch ausgesprochen, jahrelang.',
+    'Ich habe noch nie einen Film über zwei Stunden geschaut und danach die Handlung nicht mehr gewusst.',
+    'Ich habe noch nie beim Sport absichtlich langsamer gemacht, um nicht zu verlieren.',
+    'Ich habe noch nie eine Prüfung komplett verplant und in letzter Minute gelernt.',
+    'Ich habe noch nie versehentlich die falsche Person angeschrieben.',
+    'Ich habe noch nie ein Haustier menschlich mit Namen und eigener "Stimme" reden lassen.',
+    'Ich habe noch nie beim Kochen etwas komplett anbrennen lassen.',
+    'Ich habe noch nie eine Serie an einem einzigen Tag komplett durchgeschaut.',
+    'Ich habe noch nie in der Kindheit vor Kamera geweint, weil ich nicht der Star sein durfte.',
+    'Ich habe noch nie im Restaurant das falsche Essen bestellt, es aber trotzdem gegessen, ohne etwas zu sagen.',
+    'Ich habe noch nie beim Reden den Namen einer anderen Person benutzt statt der Person vor mir.',
+    'Ich habe noch nie mitten in der Nacht Essen bestellt.',
+    'Ich habe noch nie geträumt, dass ich zu spät zu etwas Wichtigem komme, und bin schweißgebadet aufgewacht.',
+    'Ich habe noch nie beim Zähneputzen gleichzeitig etwas anderes gemacht und die Zahnpasta vergessen auszuspucken.',
+    'Ich habe noch nie eine Nachricht mit Autokorrektur peinlich verschickt.',
+    'Ich habe noch nie versucht, eine Tür in die falsche Richtung zu öffnen und mich dabei beobachtet gefühlt.',
+    'Ich habe noch nie ein Geschenk wiederverschenkt.',
+    'Ich habe noch nie an einer roten Ampel gestanden und angefangen zu tanzen.',
+    'Ich habe noch nie beim Telefonieren aus Versehen aufgelegt und dann so getan, als wäre nichts gewesen.',
+    'Ich habe noch nie ein Buch gekauft und nie gelesen.',
+    'Ich habe noch nie versehentlich jemanden mit dem falschen Namen gegrüßt.',
+    'Ich habe noch nie im Supermarkt etwas gegessen, bevor ich es bezahlt habe.',
+    'Ich habe noch nie geheult, weil ein Werbespot zu emotional war.',
+    'Ich habe noch nie beim Spazierengehen laut mit mir selbst geredet.',
+    'Ich habe noch nie eine Nachricht gelesen und absichtlich nicht sofort geantwortet, um cool zu wirken.',
+    'Ich habe noch nie ein Outfit für ein Date extra oft gewechselt.',
+    'Ich habe noch nie einen Screenshot von einem Chat gemacht, um ihn jemand anderem zu zeigen.',
+    'Ich habe noch nie einen peinlichen Spitznamen von früher, den fast niemand kennt.',
+    'Ich habe noch nie in einem Vorstellungsgespräch komplett gelogen, um besser zu klingen.',
+    'Ich habe noch nie jemanden geghostet.',
+    'Ich habe noch nie heimlich das Profil eines Ex gestalkt.',
+    'Ich habe noch nie eine Notlüge erzählt, um ein Treffen abzusagen.',
+    'Ich habe noch nie so getan, als würde ich jemanden kennen, um nicht unhöflich zu wirken.',
+    'Ich habe noch nie in der Öffentlichkeit laut geschluchzt.',
+    'Ich habe noch nie ein peinliches Foto von mir selbst gelöscht, bevor es jemand sehen konnte.',
+    'Ich habe noch nie beim Streit absichtlich übertrieben, um zu gewinnen.',
+    'Ich habe noch nie eine Beziehung beendet über eine Nachricht statt persönlich.',
+    'Ich habe noch nie jemandem etwas verheimlicht, aus Angst vor der Reaktion.',
+    'Ich habe noch nie aus Eifersucht das Handy des Partners heimlich gecheckt.',
+    'Ich habe noch nie jemanden verglichen mit einem Ex, laut ausgesprochen.',
+    'Ich habe noch nie eine Beziehung nur fortgesetzt, weil ich Angst vor dem Alleinsein hatte.',
+    'Ich habe noch nie in einer Beziehung absichtlich jemanden eifersüchtig gemacht.',
+    'Ich habe noch nie jemanden auf den ersten Blick geliebt.',
+    'Ich habe noch nie eine wichtige Sache verschwiegen, weil ich Streit vermeiden wollte.',
+    'Ich habe noch nie beim ersten Date schon gewusst, dass da mehr draus wird.',
+    'Ich habe noch nie geweint, weil ich so glücklich verliebt war.',
+    'Ich habe noch nie eine Beziehung romantisiert, obwohl sie eigentlich nicht guttat.',
+    'Ich habe noch nie das Gefühl gehabt, mich in einer Beziehung komplett verloren zu haben.',
+    'Ich habe noch nie über eine mögliche gemeinsame Zukunft nachgedacht, ohne es laut zu sagen.',
+    'Ich habe noch nie einen Heiratsantrag geplant oder mir vorgestellt, wie ich ihn machen würde.',
+    'Ich habe noch nie aus Versehen "ich liebe dich" zu jemand anderem als meinem Partner gesagt.',
+    'Ich habe noch nie Angst gehabt, dass ich nicht gut genug für meinen Partner bin.',
+    'Ich habe noch nie eine tiefere Verletzung aus einer früheren Beziehung mit in eine neue getragen.',
+    'Ich habe noch nie jemanden mehr geliebt, als er mich geliebt hat.',
+    'Ich habe noch nie über eine Trennung nachgedacht, obwohl ich glücklich war, nur aus Angst.',
+    'Ich habe noch nie in einer Beziehung das Gefühl gehabt, komplett verstanden zu werden.',
+    'Ich habe noch nie ein Geheimnis für immer für mich behalten, das ich eigentlich teilen wollte.',
+    'Ich habe noch nie mehr über meine Zukunft mit einer Person nachgedacht als über alles andere.',
+    'Ich habe noch nie gedacht, dass eine Beziehung "die eine" ist, bevor sie es wirklich war.',
+    'Ich habe noch nie aus Liebe eine große Entscheidung in meinem Leben geändert.',
+    'Ich habe noch nie einer Person verziehen, von der ich dachte, ich könnte es nie.',
+    'Ich habe noch nie das Gefühl gehabt, in einer Beziehung mein wahres Ich zeigen zu können, bis es passierte.',
+    'Ich habe noch nie befürchtet, dass Liebe nicht für immer hält.',
+    'Ich habe noch nie gedacht, jemand sei zu gut für mich.',
+    'Ich habe noch nie eine Beziehung beendet, obwohl ich noch Gefühle hatte.',
+    'Ich habe noch nie aus Angst vor Ablehnung meine echten Gefühle verschwiegen.',
+    'Ich habe noch nie das Bedürfnis gehabt, jemandem meine ganze Vergangenheit zu erzählen.',
+    'Ich habe noch nie befürchtet, meinen Partner eines Tages zu enttäuschen.',
+    'Ich habe noch nie darüber nachgedacht, wie mein Leben ohne meinen aktuellen Partner aussehen würde.',
+    'Ich habe noch nie eine Beziehung idealisiert, nachdem sie vorbei war.',
+    'Ich habe noch nie das Gefühl gehabt, für jemanden bereit zu sein, alles zu ändern.',
+    'Ich habe noch nie gedacht, dass ich zu unabhängig für eine ernsthafte Beziehung bin.',
+    'Ich habe noch nie Angst gehabt, mich komplett zu verlieben.',
+  ];
+
+  const GUESS_QUESTIONS = [
+    'Was ist deine Lieblings-Pizza-Sorte?',
+    'Welchen Film würdest du dir am liebsten nochmal im Kino ansehen?',
+    'Wenn du einen Wunsch frei hättest, was würdest du dir wünschen?',
+    'Welches Tier wärst du am liebsten?',
+    'Was ist dein Lieblingsgeräusch?',
+    'Welches Land willst du unbedingt noch bereisen?',
+    'Was wäre dein Trostessen an einem schlechten Tag?',
+    'Welches Superkraft hättest du am liebsten?',
+    'Was ist deine Lieblingsjahreszeit?',
+    'Welches Gericht würdest du niemals essen wollen?',
+    'Was ist dein Lieblingswort in irgendeiner Sprache?',
+    'Welches Lied läuft dir gerade am meisten im Kopf herum?',
+    'Was wäre dein Künstlername, wenn du einer bräuchtest?',
+    'Welches Frühstück isst du am liebsten?',
+    'Was ist deine Lieblingsfarbe geworden, seit wir zusammen sind?',
+    'Welchen Beruf hättest du in einem anderen Leben gewählt?',
+    'Was ist dein Lieblings-Snack beim Filmeschauen?',
+    'Welche Serie würdest du sofort nochmal komplett schauen?',
+    'Was wäre dein Motto für dieses Jahr?',
+    'Welches Getränk bestellst du am häufigsten?',
+    'Was ist deine Lieblingserinnerung aus der Kindheit?',
+    'Welches Haustier würdest du dir als nächstes wünschen?',
+    'Was ist dein Lieblingsort in unserer Wohnung/Stadt?',
+    'Welche Kleinigkeit macht dir sofort gute Laune?',
+    'Was wäre dein Lieblingsjob für einen Tag, egal wie unrealistisch?',
+    'Welches Buch oder welche Geschichte hat dich am meisten geprägt?',
+    'Was ist dein Lieblings-Eis-Geschmack?',
+    'Welche Musikrichtung hörst du am liebsten, wenn niemand zuschaut?',
+    'Was wäre dein Spitzname, wenn du in einer Band wärst?',
+    'Welches Gewürz würdest du niemals aus der Küche verbannen?',
+    'Was ist dein liebster Wochentag?',
+    'Welche App nutzt du am meisten am Handy?',
+    'Was würdest du als Erstes kaufen, wenn du im Lotto gewinnst?',
+    'Welches Kompliment hörst du am liebsten?',
+    'Was ist dein Lieblingsplatz zum Nachdenken?',
+    'Welche Kindheitsserie oder welchen Kindheitsfilm liebst du immer noch?',
+    'Was wäre dein Traumauto, wenn Geld keine Rolle spielt?',
+    'Welches Wetter magst du am liebsten?',
+    'Was ist deine Lieblingsblume?',
+    'Welches Talent hättest du gerne, das du noch nicht hast?',
+  ];
+
+
+  // ================================================================
+  // DATE-IDEEN-DREHRAD (Wizard + Rad)
+  // ================================================================
+  const wizardStepLabel = document.getElementById('wizardStepLabel');
+  const wheelWizardScreen = document.getElementById('wheel-wizard-screen');
+  const wheelWizardBackBtn = document.getElementById('wheelWizardBackBtn');
+  const wizardStepLoc = document.getElementById('wizardStepLoc');
+  const wizardStepTime = document.getElementById('wizardStepTime');
+  const wizardStepBudget = document.getElementById('wizardStepBudget');
+  const wizardStepMood = document.getElementById('wizardStepMood');
+  const wizardNextBtn = document.getElementById('wizardNextBtn');
+  const wheelScreen = document.getElementById('wheel-screen');
+  const wheelBackBtn = document.getElementById('wheelBackBtn');
+  const wheelPoolInfo = document.getElementById('wheelPoolInfo');
+  const wheelDisc = document.getElementById('wheelDisc');
+  const spinWheelBtn = document.getElementById('spinWheelBtn');
+  const wheelResultBox = document.getElementById('wheelResultBox');
+  const wheelResultText = document.getElementById('wheelResultText');
+  const wheelRedrawBtn = document.getElementById('wheelRedrawBtn');
+  const wheelRestartBtn = document.getElementById('wheelRestartBtn');
+
+  const wizardSteps = [wizardStepLoc, wizardStepTime, wizardStepBudget, wizardStepMood];
+  const wizardKeys = ['loc', 'time', 'budget', 'mood'];
+  let wizardStepIndex = 0;
+  let wizardAnswers = {};
+  let wheelPool = [];
+  let wheelSegments = [];
+  let wheelChosenIdea = null;
+  let wheelRotation = 0;
+
+  tileWheel.addEventListener('click', () => {
+    wizardStepIndex = 0;
+    wizardAnswers = {};
+    wizardSteps.forEach((s, i) => s.classList.toggle('hidden', i !== 0));
+    document.querySelectorAll('.wizard-options .toggle-btn').forEach(b => b.classList.remove('active'));
+    wizardNextBtn.disabled = true;
+    wizardNextBtn.textContent = 'Weiter →';
+    wizardStepLabel.textContent = 'Schritt 1 von 4';
+    hubScreen.classList.add('hidden');
+    wheelWizardScreen.classList.remove('hidden');
+  });
+
+  wheelWizardBackBtn.addEventListener('click', () => {
+    wheelWizardScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  document.querySelectorAll('.wizard-options').forEach(group => {
+    group.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        wizardAnswers[group.dataset.key] = btn.dataset.value;
+        wizardNextBtn.disabled = false;
+      });
+    });
+  });
+
+  wizardNextBtn.addEventListener('click', () => {
+    if(wizardStepIndex < wizardSteps.length - 1){
+      wizardStepIndex++;
+      wizardSteps.forEach((s, i) => s.classList.toggle('hidden', i !== wizardStepIndex));
+      wizardStepLabel.textContent = 'Schritt ' + (wizardStepIndex + 1) + ' von 4';
+      wizardNextBtn.disabled = !wizardAnswers[wizardKeys[wizardStepIndex]];
+      if(wizardStepIndex === wizardSteps.length - 1) wizardNextBtn.textContent = 'Rad vorbereiten 🎡';
+    } else {
+      startWheelFromWizard();
+    }
+  });
+
+  function startWheelFromWizard(){
+    let pool = DATE_IDEAS.filter(idea => {
+      const locOk = wizardAnswers.loc === 'any' || idea.loc === 'both' || idea.loc === wizardAnswers.loc;
+      const timeOk = wizardAnswers.time === 'any' || idea.time === wizardAnswers.time;
+      const budgetOk = wizardAnswers.budget === 'any' || idea.budget === wizardAnswers.budget;
+      const moodOk = wizardAnswers.mood === 'any' || idea.mood === wizardAnswers.mood;
+      return locOk && timeOk && budgetOk && moodOk;
+    });
+    if(pool.length < 4) pool = DATE_IDEAS.slice();
+
+    wheelPool = pool;
+    wheelPoolInfo.textContent = wheelPool.length + ' passende Ideen im Topf';
+    wheelRotation = 0;
+    wheelDisc.style.transition = 'none';
+    wheelDisc.style.transform = 'rotate(0deg)';
+    wheelResultBox.classList.add('hidden');
+    buildWheelSegments();
+
+    wheelWizardScreen.classList.add('hidden');
+    wheelScreen.classList.remove('hidden');
+  }
+
+  const WHEEL_COLORS = ['#6B4E71', '#4F8A82', '#C9A063', '#D88C9A', '#8AA6A3', '#B58BC9', '#E0A96D', '#7C9BB8'];
+
+  function buildWheelSegments(){
+    const n = Math.min(8, wheelPool.length);
+    wheelSegments = shuffleArray(wheelPool).slice(0, n);
+    const segAngle = 360 / n;
+    let gradientParts = [];
+    for(let i = 0; i < n; i++){
+      const from = i * segAngle;
+      const to = (i + 1) * segAngle;
+      gradientParts.push(WHEEL_COLORS[i % WHEEL_COLORS.length] + ' ' + from + 'deg ' + to + 'deg');
+    }
+    wheelDisc.style.background = 'conic-gradient(' + gradientParts.join(', ') + ')';
+  }
+
+  spinWheelBtn.addEventListener('click', () => {
+    if(wheelSegments.length === 0) buildWheelSegments();
+    const n = wheelSegments.length;
+    const segAngle = 360 / n;
+    const chosenIndex = Math.floor(Math.random() * n);
+    wheelChosenIdea = wheelSegments[chosenIndex];
+
+    const targetWithinSegment = chosenIndex * segAngle + segAngle / 2;
+    const extraSpins = 5 * 360;
+    wheelRotation += extraSpins + (360 - (targetWithinSegment % 360)) + (360 - (wheelRotation % 360));
+
+    wheelResultBox.classList.add('hidden');
+    wheelDisc.style.transition = 'transform 4s cubic-bezier(.17,.67,.16,.99)';
+    wheelDisc.style.transform = 'rotate(' + wheelRotation + 'deg)';
+
+    setTimeout(() => {
+      wheelResultText.textContent = wheelChosenIdea.text;
+      wheelResultBox.classList.remove('hidden');
+    }, 4100);
+  });
+
+  wheelRedrawBtn.addEventListener('click', () => {
+    buildWheelSegments();
+    spinWheelBtn.click();
+  });
+
+  wheelRestartBtn.addEventListener('click', () => {
+    wheelScreen.classList.add('hidden');
+    wheelWizardScreen.classList.remove('hidden');
+    wizardStepIndex = 0;
+    wizardAnswers = {};
+    wizardSteps.forEach((s, i) => s.classList.toggle('hidden', i !== 0));
+    document.querySelectorAll('.wizard-options .toggle-btn').forEach(b => b.classList.remove('active'));
+    wizardNextBtn.disabled = true;
+    wizardNextBtn.textContent = 'Weiter →';
+    wizardStepLabel.textContent = 'Schritt 1 von 4';
+  });
+
+  wheelBackBtn.addEventListener('click', () => {
+    wheelScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  // ================================================================
+  // ROLLENSPIEL-ICEBREAKER
+  // ================================================================
+  const roleplayScreen = document.getElementById('roleplay-screen');
+  const roleplayBackBtn = document.getElementById('roleplayBackBtn');
+  const roleplayCategoryToggle = document.getElementById('roleplayCategoryToggle');
+  const roleplayCategoryLabel = document.getElementById('roleplayCategoryLabel');
+  const roleplayTag = document.getElementById('roleplayTag');
+  const roleplayText = document.getElementById('roleplayText');
+  const roleplayNextBtn = document.getElementById('roleplayNextBtn');
+
+  let roleplayCategory = 'all';
+  let roleplayQueue = [];
+  let roleplayPos = 0;
+
+  function roleplayPoolFor(cat){
+    return cat === 'all' ? ROLEPLAY_SCENARIOS : ROLEPLAY_SCENARIOS.filter(s => s.cat === cat);
+  }
+
+  function renderRoleplay(){
+    if(roleplayPos >= roleplayQueue.length){
+      roleplayQueue = shuffleArray(roleplayPoolFor(roleplayCategory));
+      roleplayPos = 0;
+    }
+    const item = roleplayQueue[roleplayPos];
+    roleplayTag.textContent = item.cat;
+    roleplayText.textContent = item.text;
+  }
+
+  tileRoleplay.addEventListener('click', () => {
+    roleplayCategory = 'all';
+    roleplayCategoryToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === 'all'));
+    roleplayQueue = shuffleArray(roleplayPoolFor('all'));
+    roleplayPos = 0;
+    renderRoleplay();
+    hubScreen.classList.add('hidden');
+    roleplayScreen.classList.remove('hidden');
+  });
+
+  roleplayCategoryToggle.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleplayCategoryToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      roleplayCategory = btn.dataset.cat;
+      roleplayQueue = shuffleArray(roleplayPoolFor(roleplayCategory));
+      roleplayPos = 0;
+      renderRoleplay();
+    });
+  });
+
+  roleplayNextBtn.addEventListener('click', () => {
+    roleplayPos++;
+    renderRoleplay();
+  });
+
+  roleplayBackBtn.addEventListener('click', () => {
+    roleplayScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  // ================================================================
+  // NIE HABE ICH JE (online, teilt sich die Firebase-Datenbank)
+  // ================================================================
+  const nhieRef = db.ref('nhie_session');
+  const nhieScreen = document.getElementById('nhie-screen');
+  const nhieBackBtn = document.getElementById('nhieBackBtn');
+  const nhiePartnerDot = document.getElementById('nhiePartnerDot');
+  const nhiePartnerStatus = document.getElementById('nhiePartnerStatus');
+  const nhieCounter = document.getElementById('nhieCounter');
+  const nhieStatementText = document.getElementById('nhieStatementText');
+  const nhieAnswerArea = document.getElementById('nhieAnswerArea');
+  const nhieHabIchBtn = document.getElementById('nhieHabIchBtn');
+  const nhieHabIchNichtBtn = document.getElementById('nhieHabIchNichtBtn');
+  const nhieWaitingNote = document.getElementById('nhieWaitingNote');
+  const nhieTilesArea = document.getElementById('nhieTilesArea');
+  const nhieNextBtnWrap = document.getElementById('nhieNextBtnWrap');
+  const nhieNextBtn = document.getElementById('nhieNextBtn');
+
+  let nhieStatements = [];
+  let nhieIndex = 0;
+  let nhieAnswers = {};
+  let nhieListenersAttached = false;
+
+  tileNeverHaveIEver.addEventListener('click', () => {
+    hubScreen.classList.add('hidden');
+    nhieScreen.classList.remove('hidden');
+    attachNhieListeners();
+  });
+
+  nhieBackBtn.addEventListener('click', () => {
+    nhieScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  function attachNhieListeners(){
+    if(nhieListenersAttached) return;
+    nhieListenersAttached = true;
+
+    nhieRef.child('statements').once('value').then(snap => {
+      if(!snap.exists()){
+        nhieRef.child('statements').set(shuffleArray(NHIE_STATEMENTS));
+        nhieRef.child('currentIndex').set(0);
+      }
+    });
+
+    nhieRef.child('statements').on('value', snap => {
+      nhieStatements = snap.val() || [];
+      renderNhie();
+    });
+
+    nhieRef.child('currentIndex').on('value', snap => {
+      nhieIndex = snap.val() || 0;
+      renderNhie();
+    });
+
+    let nhieAnswersRef = null;
+    function watchNhieAnswers(){
+      if(nhieAnswersRef) nhieAnswersRef.off();
+      nhieAnswersRef = nhieRef.child('answers').child(String(nhieIndex));
+      nhieAnswersRef.on('value', snap => {
+        nhieAnswers = snap.val() || {};
+        renderNhieTiles();
+      });
+    }
+    nhieRef.child('currentIndex').on('value', () => watchNhieAnswers());
+    watchNhieAnswers();
+  }
+
+  function renderNhiePartnerStatus(){
+    const others = Object.entries(presenceState).filter(([id, p]) => id !== myId && p && p.online);
+    if(others.length === 0){
+      nhiePartnerStatus.textContent = 'Warte, bis noch jemand online ist …';
+      nhiePartnerDot.classList.add('offline');
+    } else {
+      nhiePartnerStatus.textContent = (others[0][1].name || 'Jemand') + ' ist online ✓';
+      nhiePartnerDot.classList.remove('offline');
+    }
+  }
+
+  function renderNhie(){
+    if(!nhieStatements || nhieStatements.length === 0) return;
+    if(nhieIndex >= nhieStatements.length){
+      nhieCounter.textContent = 'Geschafft!';
+      nhieStatementText.textContent = 'Das waren alle Aussagen 🎉 Öffnet das Spiel neu, um wieder von vorn zu beginnen.';
+      nhieAnswerArea.classList.add('hidden');
+      nhieTilesArea.classList.add('hidden');
+      nhieNextBtnWrap.classList.add('hidden');
+      nhieWaitingNote.classList.add('hidden');
+      return;
+    }
+    nhieCounter.textContent = 'Aussage ' + (nhieIndex + 1) + ' von ' + nhieStatements.length;
+    nhieStatementText.textContent = nhieStatements[nhieIndex];
+    renderNhieTiles();
+  }
+
+  function submitNhieAnswer(value){
+    nhieRef.child('answers').child(String(nhieIndex)).child(myId).set({ name: myName, value: value });
+  }
+  nhieHabIchBtn.addEventListener('click', () => submitNhieAnswer('ja'));
+  nhieHabIchNichtBtn.addEventListener('click', () => submitNhieAnswer('nein'));
+
+  function renderNhieTiles(){
+    if(!nhieStatements || nhieIndex >= nhieStatements.length) return;
+    const myEntry = nhieAnswers[myId];
+    const otherEntries = Object.entries(nhieAnswers).filter(([id]) => id !== myId);
+    const bothAnswered = Object.keys(nhieAnswers).length >= 2;
+
+    nhieAnswerArea.classList.toggle('hidden', !!myEntry);
+    nhieWaitingNote.classList.toggle('hidden', !(myEntry && !bothAnswered));
+
+    if(bothAnswered){
+      nhieTilesArea.classList.remove('hidden');
+      nhieTilesArea.innerHTML = '';
+      otherEntries.forEach(([id, entry]) => {
+        const label = entry.value === 'ja' ? '🙋 Hab ich' : '🙅 Hab ich nicht';
+        nhieTilesArea.appendChild(makeTile(entry.name || 'Andere Person', label, 'other'));
+      });
+      if(myEntry){
+        const myLabel = myEntry.value === 'ja' ? '🙋 Hab ich' : '🙅 Hab ich nicht';
+        nhieTilesArea.appendChild(makeTile('Du', myLabel, 'mine'));
+      }
+      nhieNextBtnWrap.classList.remove('hidden');
+    } else {
+      nhieTilesArea.classList.add('hidden');
+      nhieNextBtnWrap.classList.add('hidden');
+    }
+  }
+
+  nhieNextBtn.addEventListener('click', () => {
+    nhieRef.child('currentIndex').set(nhieIndex + 1);
+  });
+
+  // ================================================================
+  // RATE MEINE ANTWORT (online, Rollen wechseln jede Runde)
+  // ================================================================
+  const guessRef = db.ref('guess_session');
+  const guessScreen = document.getElementById('guess-screen');
+  const guessBackBtn = document.getElementById('guessBackBtn');
+  const guessPartnerDot = document.getElementById('guessPartnerDot');
+  const guessPartnerStatus = document.getElementById('guessPartnerStatus');
+  const guessRoleLabel = document.getElementById('guessRoleLabel');
+  const guessQuestionText = document.getElementById('guessQuestionText');
+  const guessAnswerForm = document.getElementById('guessAnswerForm');
+  const guessInputLabel = document.getElementById('guessInputLabel');
+  const guessInput = document.getElementById('guessInput');
+  const guessSubmitBtn = document.getElementById('guessSubmitBtn');
+  const guessWaitingNote = document.getElementById('guessWaitingNote');
+  const guessTilesArea = document.getElementById('guessTilesArea');
+  const guessNextBtnWrap = document.getElementById('guessNextBtnWrap');
+  const guessNextBtn = document.getElementById('guessNextBtn');
+
+  let guessQuestions = [];
+  let guessIndex = 0;
+  let guessAnswererId = null;
+  let guessRoundData = {};
+  let guessListenersAttached = false;
+
+  tileGuessAnswer.addEventListener('click', () => {
+    hubScreen.classList.add('hidden');
+    guessScreen.classList.remove('hidden');
+    attachGuessListeners();
+  });
+
+  guessBackBtn.addEventListener('click', () => {
+    guessScreen.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+  });
+
+  function attachGuessListeners(){
+    if(guessListenersAttached) return;
+    guessListenersAttached = true;
+
+    guessRef.child('questions').once('value').then(snap => {
+      if(!snap.exists()){
+        guessRef.child('questions').set(shuffleArray(GUESS_QUESTIONS));
+        guessRef.child('currentIndex').set(0);
+      }
+    });
+    guessRef.child('answererId').once('value').then(snap => {
+      if(!snap.exists()) guessRef.child('answererId').set(myId);
+    });
+
+    guessRef.child('questions').on('value', snap => {
+      guessQuestions = snap.val() || [];
+      renderGuess();
+    });
+    guessRef.child('answererId').on('value', snap => {
+      guessAnswererId = snap.val() || null;
+      renderGuess();
+    });
+    guessRef.child('currentIndex').on('value', snap => {
+      guessIndex = snap.val() || 0;
+      guessInput.value = '';
+      renderGuess();
+    });
+
+    let guessRoundRef = null;
+    function watchGuessRound(){
+      if(guessRoundRef) guessRoundRef.off();
+      guessRoundRef = guessRef.child('rounds').child(String(guessIndex));
+      guessRoundRef.on('value', snap => {
+        guessRoundData = snap.val() || {};
+        renderGuessTiles();
+      });
+    }
+    guessRef.child('currentIndex').on('value', () => watchGuessRound());
+    watchGuessRound();
+  }
+
+  function renderGuessPartnerStatus(){
+    const others = Object.entries(presenceState).filter(([id, p]) => id !== myId && p && p.online);
+    if(others.length === 0){
+      guessPartnerStatus.textContent = 'Warte, bis noch jemand online ist …';
+      guessPartnerDot.classList.add('offline');
+    } else {
+      guessPartnerStatus.textContent = (others[0][1].name || 'Jemand') + ' ist online ✓';
+      guessPartnerDot.classList.remove('offline');
+    }
+  }
+
+  function myGuessRole(){
+    return myId === guessAnswererId ? 'answer' : 'guess';
+  }
+
+  function renderGuess(){
+    if(!guessQuestions || guessQuestions.length === 0) return;
+    if(guessIndex >= guessQuestions.length){
+      guessRoleLabel.textContent = 'Geschafft!';
+      guessQuestionText.textContent = 'Das waren alle Fragen 🎉 Öffnet das Spiel neu für eine neue Runde.';
+      guessAnswerForm.classList.add('hidden');
+      guessTilesArea.classList.add('hidden');
+      guessNextBtnWrap.classList.add('hidden');
+      guessWaitingNote.classList.add('hidden');
+      return;
+    }
+    guessQuestionText.textContent = guessQuestions[guessIndex];
+
+    const role = myGuessRole();
+    if(role === 'answer'){
+      guessRoleLabel.textContent = '💬 Du beantwortest heute';
+      guessInputLabel.textContent = 'Deine echte Antwort';
+      guessInput.placeholder = 'Schreib deine echte Antwort …';
+    } else {
+      guessRoleLabel.textContent = '🔮 Du rätst heute';
+      guessInputLabel.textContent = 'Dein Tipp, was die andere Person antwortet';
+      guessInput.placeholder = 'Was glaubst du, wird geantwortet?';
+    }
+    renderGuessTiles();
+  }
+
+  guessSubmitBtn.addEventListener('click', () => {
+    const text = guessInput.value.trim();
+    if(!text) return;
+    const role = myGuessRole();
+    guessRef.child('rounds').child(String(guessIndex)).child(role).set({ id: myId, name: myName, text: text });
+  });
+
+  function renderGuessTiles(){
+    if(!guessQuestions || guessIndex >= guessQuestions.length) return;
+    const myRole = myGuessRole();
+    const mySubmitted = guessRoundData[myRole];
+    const bothSubmitted = guessRoundData.answer && guessRoundData.guess;
+
+    guessAnswerForm.classList.toggle('hidden', !!mySubmitted);
+    guessWaitingNote.classList.toggle('hidden', !(mySubmitted && !bothSubmitted));
+
+    if(bothSubmitted){
+      guessTilesArea.classList.remove('hidden');
+      guessTilesArea.innerHTML = '';
+      guessTilesArea.appendChild(makeTile('💬 Echte Antwort (' + (guessRoundData.answer.name || 'Antworter') + ')', guessRoundData.answer.text, 'mine'));
+      guessTilesArea.appendChild(makeTile('🔮 Tipp (' + (guessRoundData.guess.name || 'Rater') + ')', guessRoundData.guess.text, 'other'));
+      guessNextBtnWrap.classList.remove('hidden');
+    } else {
+      guessTilesArea.classList.add('hidden');
+      guessNextBtnWrap.classList.add('hidden');
+    }
+  }
+
+  guessNextBtn.addEventListener('click', () => {
+    const others = Object.keys(presenceState).filter(id => id !== myId && presenceState[id] && presenceState[id].online);
+    const otherId = others.length > 0 ? others[0] : null;
+    const newAnswererId = (guessAnswererId === myId) ? (otherId || myId) : myId;
+    guessRef.child('answererId').set(newAnswererId);
+    guessRef.child('currentIndex').set(guessIndex + 1);
+  });
+
+  // Presence-Updates auch an die neuen Online-Spiele weiterreichen
+  db.ref('presence').on('value', () => {
+    renderNhiePartnerStatus();
+    renderGuessPartnerStatus();
   });
 
 </script>
